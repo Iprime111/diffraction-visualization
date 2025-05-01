@@ -60,7 +60,6 @@ gtest_discover_tests(diffraction-visualize-tests)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # Install needed targets
-
 install(TARGETS diffraction-visualize
         CONFIGURATIONS Debug
         RUNTIME

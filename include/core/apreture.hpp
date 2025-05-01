@@ -1,7 +1,13 @@
 #pragma once
 
-namespace diffraction {
-    // TODO aperture loader (from file)
+#include "core/plane_field.hpp"
 
-    // TODO aperture loader (from function)
+namespace diffraction {
+class Aperture : PlaneField {
+    
+};
+
+// TODO aperture loader (from file)
+
+// TODO aperture loader (from function)
 } // namespace diffraction

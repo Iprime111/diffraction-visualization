@@ -9,7 +9,7 @@
 
 namespace diffraction {
 
-class PlaneField final {
+class PlaneField {
   private:
     std::vector<FieldValue> fieldValues_;
 
@@ -54,6 +54,8 @@ class PlaneField final {
 
     PlaneField(PlaneField&&) = default;
     PlaneField &operator=(PlaneField&&) = default;
+
+    virtual ~PlaneField() = default;
 
     DIFFRACTION_NODISCARD RowProxy operator[](std::size_t row) {
         return RowProxy{fieldValues_.begin() + row * xSize_, xSize_};
