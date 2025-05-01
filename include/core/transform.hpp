@@ -5,8 +5,8 @@
 
 namespace diffraction {
 template<typename Transformer, typename DataType>
-DataType &transform(Transformer& transformer, DataType& input) {
-    return transformer.transform(input);
+void transform(const Transformer& transformer, DataType& input) {
+    transformer.transform(input);
 }
 
 template<typename InnerType>
@@ -15,8 +15,8 @@ class Transformable final : NonCopyable {
     Transformable(InnerType& input) : transformedObject_(input) {}
 
     template<typename Transformer>
-    Transformable<InnerType>& transform(Transformer& transformer) {
-        transform(transformer, transformedObject_.get());
+    Transformable<InnerType>& transform(const Transformer& transformer) {
+        diffraction::transform(transformer, transformedObject_.get());
         return *this;
     }
 
@@ -28,9 +28,14 @@ class MultiplyTransformer final : NonCopyable {
   public:
     MultiplyTransformer(PlaneField& multiplier) : multiplierRef_(multiplier) {}
 
-    PlaneField& transform(PlaneField& input);
+    PlaneField& transform(PlaneField& input) const;
 
   private:
     std::reference_wrapper<PlaneField> multiplierRef_;
+};
+
+class NormTransformer final {
+  public:
+    PlaneField& transform(PlaneField& input) const;
 };
 } // namespace diffraction

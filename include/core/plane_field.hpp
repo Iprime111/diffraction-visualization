@@ -93,4 +93,19 @@ class PlaneField {
     std::size_t xSize_{0};
     std::size_t ySize_{0};
 };
+
+class MonochromaticField final : public PlaneField {
+  public:
+    MonochromaticField(std::size_t xSize, std::size_t ySize, double wavelength) : 
+        PlaneField(xSize, ySize), wavelength_(wavelength) {}
+
+    MonochromaticField(std::size_t xSize, std::size_t ySize, FieldValue *rawData, double wavelength) : 
+        PlaneField(xSize, ySize, rawData), wavelength_(wavelength) {}
+
+    DIFFRACTION_NODISCARD auto getWavelength() const {
+        return wavelength_;
+    }
+  private:
+    double wavelength_;
+};
 } // namespace diffraction

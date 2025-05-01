@@ -10,7 +10,7 @@ namespace transformers {
 class FFT2D final {
   public:
     // TODO use in-place transform FFTW_IN_PLACE https://www.fftw.org/fftw2_doc/fftw_3.html#SEC19
-    PlaneField& transform(PlaneField& input);
+    PlaneField& transform(PlaneField& input) const;
 
   private:
     fftw_plan plan_;
@@ -20,7 +20,7 @@ class FFT2D final {
 class FFT2DInverse final {
   public:
     // TODO same as FFT2D
-    PlaneField& transform(PlaneField& input);
+    PlaneField& transform(PlaneField& input) const;
 
   private:
     // TODO ...
