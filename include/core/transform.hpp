@@ -1,3 +1,5 @@
+#pragma once
+
 #include <functional>
 
 #include "core/attributes.hpp"
@@ -12,7 +14,7 @@ void transform(const Transformer& transformer, DataType& input) {
 template<typename InnerType>
 class Transformable final : NonCopyable {
   public:
-    Transformable(InnerType& input) : transformedObject_(input) {}
+    explicit Transformable(InnerType& input) : transformedObject_(input) {}
 
     template<typename Transformer>
     Transformable<InnerType>& transform(const Transformer& transformer) {
@@ -26,7 +28,7 @@ class Transformable final : NonCopyable {
 
 class MultiplyTransformer final : NonCopyable {
   public:
-    MultiplyTransformer(PlaneField& multiplier) : multiplierRef_(multiplier) {}
+    explicit MultiplyTransformer(PlaneField& multiplier) : multiplierRef_(multiplier) {}
 
     PlaneField& transform(PlaneField& input) const;
 

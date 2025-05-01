@@ -1,29 +1,37 @@
 #pragma once
 
+#include <functional>
+#include <stdexcept>
+
+#include "core/attributes.hpp"
+#include "core/types.hpp"
 #include "core/plane_field.hpp"
 
 namespace diffraction {
-namespace transformers {
-// TODO fftw 2d fft and ifft wrapper classes
-// https://www.fftw.org/fftw2_doc/fftw_2.html
 
-class FFT2D final {
+class FFT2D final : NonCopyable {
   public:
-    // TODO use in-place transform FFTW_IN_PLACE https://www.fftw.org/fftw2_doc/fftw_3.html#SEC19
+    explicit FFT2D(PlaneField& fft);
+
+    ~FFT2D();
+
     PlaneField& transform(PlaneField& input) const;
 
   private:
     fftw_plan plan_;
-    // TODO ...
+    std::reference_wrapper<PlaneField> fftRef_;
 };
 
-class FFT2DInverse final {
+class FFT2DInverse final : NonCopyable {
   public:
-    // TODO same as FFT2D
+    explicit FFT2DInverse(PlaneField& fftInverse);
+
+    ~FFT2DInverse();
+
     PlaneField& transform(PlaneField& input) const;
 
   private:
-    // TODO ...
+    fftw_plan plan_;
+    std::reference_wrapper<PlaneField> fftInverseRef_;
 };
-}
 } // namespace diffraction
