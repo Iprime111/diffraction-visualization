@@ -16,24 +16,48 @@ CPMAddPackage(
   GIT_TAG v1.17.0
 )
 
+CPMAddPackage(
+    NAME SFML
+    GITHUB_REPOSITORY SFML/SFML
+    GIT_TAG 3.0.1
+    GIT_SHALLOW
+)
+
 find_package(PkgConfig REQUIRED)
 pkg_search_module(FFTW REQUIRED fftw3 IMPORTED_TARGET)
 
-# Create binary
-add_executable(diffraction-visualize)
+# Create lib target
+add_library(diffraction-visualize STATIC)
 
-target_include_directories(diffraction-visualize PRIVATE include)
+target_include_directories(diffraction-visualize PUBLIC include)
 
-target_compile_features(diffraction-visualize PRIVATE cxx_std_20)
+target_compile_features(diffraction-visualize PUBLIC cxx_std_20)
 
-# Link fftw
+# Link libs
 
-target_link_libraries(diffraction-visualize PRIVATE PkgConfig::FFTW)
-target_include_directories(diffraction-visualize PRIVATE PkgConfig::FFTW)
+target_link_libraries(diffraction-visualize PUBLIC PkgConfig::FFTW fmt::fmt SFML::Graphics)
+target_include_directories(diffraction-visualize PUBLIC PkgConfig::FFTW )
+
+
+# Create binary target
+add_executable(diffraction-visualize-bin)
+target_link_libraries(diffraction-visualize-bin PRIVATE diffraction-visualize)
 
 add_subdirectory(src)
 
-# TODO test target
+# Create test target
+enable_testing()
+
+add_executable(diffraction-visualize-tests)
+target_link_libraries(diffraction-visualize-tests PRIVATE diffraction-visualize GTest::gtest_main gtest)
+
+add_subdirectory(tests)
+
+include(GoogleTest)
+gtest_discover_tests(diffraction-visualize-tests)
+
+# Set output dir
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # Install needed targets
 

@@ -16,7 +16,8 @@ class Transformable final : NonCopyable {
 
     template<typename Transformer>
     Transformable<InnerType>& transform(Transformer& transformer) {
-        return transform(transformer, transformedObject_.get());
+        transform(transformer, transformedObject_.get());
+        return *this;
     }
 
   private:
