@@ -1,5 +1,6 @@
 #include <functional>
 
+#include "core/attributes.hpp"
 #include "core/plane_field.hpp"
 
 namespace diffraction {
@@ -8,7 +9,21 @@ DataType &transform(Transformer& transformer, DataType& input) {
     return transformer.transform(input);
 }
 
-class MultiplyTransformer final {
+template<typename InnerType>
+class Transformable final : NonCopyable {
+  public:
+    Transformable(InnerType& input) : transformedObject_(input) {}
+
+    template<typename Transformer>
+    Transformable<InnerType>& transform(Transformer& transformer) {
+        return transform(transformer, transformedObject_.get());
+    }
+
+  private:
+    std::reference_wrapper<InnerType> transformedObject_;
+};
+
+class MultiplyTransformer final : NonCopyable {
   public:
     MultiplyTransformer(PlaneField& multiplier) : multiplierRef_(multiplier) {}
 

@@ -25,7 +25,7 @@ class PlaneField final {
 
     // TODO move methods to cpp file? (This will disable inlining optimizations)
 
-    class RowProxy final {
+    class RowProxy final : NonCopyable {
         friend PlaneField;
 
       public:
