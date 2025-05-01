@@ -25,7 +25,7 @@ class Transformable final : NonCopyable {
   private:
     std::reference_wrapper<InnerType> transformedObject_;
 };
-// TODO: namespace transformers?
+
 class MultiplyTransformer final : NonCopyable {
   public:
     explicit MultiplyTransformer(PlaneField& multiplier) : multiplierRef_(multiplier) {}

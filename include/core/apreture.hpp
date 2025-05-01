@@ -10,8 +10,8 @@ namespace diffraction {
 class Aperture : PlaneField {
   public:
     Aperture(const std::string& filename, size_t xSize, size_t ySize) :
-        PlaneField(xSize, ySize)
-    {
+        PlaneField(xSize, ySize) {
+            
         sf::Image sourceImage = loadImage(filename);
         
         sf::Image scaledImage = scaleImage(sourceImage, xSize, ySize);
@@ -41,16 +41,16 @@ class Aperture : PlaneField {
             static_cast<float>(ySize) / source.getSize().y
         });
 
-        // // sf::RenderTexture render_texture;
-        // // if (!render_texture.create(xSize, ySize)) {
-        // //     throw std::runtime_error("Failed to create render texture");
-        // // }
+        sf::RenderTexture renderTexture;
+        if (!renderTexture.create(xSize, ySize)) {
+            throw std::runtime_error("Failed to create render texture");
+        }
 
-        // render_texture.clear(sf::Color::Black);
-        // render_texture.draw(sprite);
-        // render_texture.display();
+        renderTexture.clear(sf::Color::Black);
+        renderTexture.draw(sprite);
+        renderTexture.display();
 
-        // return render_texture.getTexture().copyToImage();
+        return renderTexture.getTexture().copyToImage();
     }
 
     void convertToPlaneField(const sf::Image& image) {
