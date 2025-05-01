@@ -9,7 +9,7 @@
 
 namespace diffraction {
 
-class MonochromaticPlaneField final {
+class PlaneField final {
   private:
     std::vector<FieldValue> fieldValues_;
 
@@ -26,7 +26,7 @@ class MonochromaticPlaneField final {
     // TODO move methods to cpp file? (This will disable inlining optimizations)
 
     class RowProxy final {
-        friend MonochromaticPlaneField;
+        friend PlaneField;
 
       public:
         RowProxy(const RowProxy&) = delete;
@@ -44,16 +44,16 @@ class MonochromaticPlaneField final {
         std::size_t rowSize_{0};
     };
 
-    MonochromaticPlaneField(std::size_t xSize, std::size_t ySize) : 
+    PlaneField(std::size_t xSize, std::size_t ySize) : 
         xSize_(xSize), ySize_(ySize), fieldValues_(xSize * ySize) {}
 
-    MonochromaticPlaneField(std::size_t xSize, std::size_t ySize, const FieldValue *rawData);
+    PlaneField(std::size_t xSize, std::size_t ySize, const FieldValue *rawData);
 
-    MonochromaticPlaneField(const MonochromaticPlaneField&) = default;
-    MonochromaticPlaneField &operator=(const MonochromaticPlaneField&) = default;
+    PlaneField(const PlaneField&) = default;
+    PlaneField &operator=(const PlaneField&) = default;
 
-    MonochromaticPlaneField(MonochromaticPlaneField&&) = default;
-    MonochromaticPlaneField &operator=(MonochromaticPlaneField&&) = default;
+    PlaneField(PlaneField&&) = default;
+    PlaneField &operator=(PlaneField&&) = default;
 
     DIFFRACTION_NODISCARD RowProxy operator[](std::size_t row) {
         return RowProxy{fieldValues_.begin() + row * xSize_, xSize_};
@@ -61,6 +61,30 @@ class MonochromaticPlaneField final {
 
     DIFFRACTION_NODISCARD FieldValue *getRawData() {
         return fieldValues_.data();  
+    }
+
+    DIFFRACTION_NODISCARD auto getXSize() const {
+        return xSize_;
+    }
+
+    DIFFRACTION_NODISCARD auto getYSize() const {
+        return ySize_;
+    }
+
+    DIFFRACTION_NODISCARD auto begin() {
+        return fieldValues_.begin();
+    }
+
+    DIFFRACTION_NODISCARD auto end() {
+        return fieldValues_.begin();
+    }
+
+    DIFFRACTION_NODISCARD auto begin() const {
+        return fieldValues_.begin();
+    }
+
+    DIFFRACTION_NODISCARD auto end() const {
+        return fieldValues_.end();
     }
 
   private:

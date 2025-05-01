@@ -1,9 +1,10 @@
+#include <algorithm>
 #include <stdexcept>
 
-#include "core/plane.hpp"
+#include "core/plane_field.hpp"
 
 namespace diffraction {
-    MonochromaticPlaneField::MonochromaticPlaneField(std::size_t xSize, std::size_t ySize, const FieldValue *rawData) : 
+    PlaneField::PlaneField(std::size_t xSize, std::size_t ySize, const FieldValue *rawData) : 
         xSize_(xSize), ySize_(ySize), fieldValues_(xSize * ySize) {
 
         if (rawData == nullptr) {
@@ -13,7 +14,7 @@ namespace diffraction {
         if (xSize == 0 || ySize == 0) {
             return;
         }
-
-        std::memcpy(fieldValues_.data(), rawData, fieldValues_.size() * sizeof(FieldValue));
+    
+        std::copy(rawData, rawData + fieldValues_.size(), fieldValues_.begin());
     }
 }
