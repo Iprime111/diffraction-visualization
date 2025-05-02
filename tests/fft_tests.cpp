@@ -21,7 +21,8 @@ TEST(FFT2DTest, ForwardTransform) {
         }
     }
 
-    diffraction::FFT2D fft;
+    diffraction::FFTPlan<diffraction::FFT2D> plan{kSize, kSize};
+    diffraction::FFT2D fft{plan};
     fft.transform(input);
 
     for (std::size_t y = 0; y < kSize; ++y) {
@@ -41,7 +42,8 @@ TEST(FFT2DTest, InverseTransform) {
         }
     }
 
-    diffraction::FFT2DInverse fftInverse;
+    diffraction::FFTPlan<diffraction::FFT2DInverse> plan{kSize, kSize};
+    diffraction::FFT2DInverse fftInverse{plan};
     fftInverse.transform(input);
 
     const double expected_value = 1.0;

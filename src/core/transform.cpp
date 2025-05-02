@@ -14,7 +14,8 @@ void MultiplyTransformer::transform(PlaneField& input) const {
         DIFFRACTION_CRITICAL("X size of multiplied plane fields is not equal");
     }
 
-    for (auto inputIt = input.begin(), multiplierIt = multiplier.begin(), inputEnd = input.end();
+    auto multiplierIt = multiplier.begin();
+    for (auto inputIt = input.begin(), inputEnd = input.end();
          inputIt != inputEnd; ++inputIt, ++multiplierIt) {
 
         *inputIt *= *multiplierIt;
