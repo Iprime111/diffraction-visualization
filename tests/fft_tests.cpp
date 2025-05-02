@@ -2,13 +2,10 @@
 #include <gtest/gtest.h>
 #include <fftw3.h>
 #include <complex>
-#include <vector>
 #include <fmt/format.h>
 
 #include "core/fft.hpp"
 #include "core/plane_field.hpp"
-#include "core/transform.hpp"
-#include "fmt/base.h"
 
 namespace {
 constexpr double kTolerance = 1e-6;
@@ -47,7 +44,7 @@ TEST(FFT2DTest, InverseTransform) {
     diffraction::FFT2DInverse fftInverse;
     fftInverse.transform(input);
 
-    const double expected_value = kSize * kSize;
+    const double expected_value = 1.0;
     
     for (std::size_t y = 0; y < kSize; ++y) {
         for (std::size_t x = 0; x < kSize; ++x) {

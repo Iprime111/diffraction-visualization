@@ -41,5 +41,11 @@ void FFT2DInverse::transform(PlaneField& input) const {
 
     fftw_execute_dft(plan_, dataPtr, dataPtr);
     fftw_destroy_plan(plan_);
+
+    double normCoeff = input.getXSize() * input.getYSize();
+
+    for (auto& value : input) {
+        value /= normCoeff;
+    }
 }
 } // namespace diffraction

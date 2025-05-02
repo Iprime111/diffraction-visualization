@@ -67,9 +67,7 @@ int main() {
 
 namespace {
 void getIntensityRgbData(diffraction::MonochromaticField& field, std::vector<diffraction::RGBData>& rgbData) {
-    fmt::println("Before norm: {}", field[0][0].real());
     diffraction::Transformable{field}.transform(diffraction::NormTransformer{});
-    fmt::println("After norm: {}", field[0][0].real());
 
     auto fieldSize = field.getXSize() * field.getYSize();
     auto fieldIt = field.begin();
