@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <functional>
 #include <stdexcept>
 
@@ -11,27 +12,15 @@ namespace diffraction {
 
 class FFT2D final : NonCopyable {
   public:
-    explicit FFT2D(PlaneField& fft);
+    FFT2D() = default;
 
-    ~FFT2D();
-
-    PlaneField& transform(PlaneField& input) const;
-
-  private:
-    fftw_plan plan_;
-    std::reference_wrapper<PlaneField> fftRef_;
+    void transform(PlaneField& input) const;
 };
 
 class FFT2DInverse final : NonCopyable {
   public:
-    explicit FFT2DInverse(PlaneField& fftInverse);
+    FFT2DInverse() = default;
 
-    ~FFT2DInverse();
-
-    PlaneField& transform(PlaneField& input) const;
-
-  private:
-    fftw_plan plan_;
-    std::reference_wrapper<PlaneField> fftInverseRef_;
+    void transform(PlaneField& input) const;
 };
 } // namespace diffraction
