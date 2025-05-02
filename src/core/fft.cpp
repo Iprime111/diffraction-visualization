@@ -7,84 +7,42 @@
 #include "core/transform.hpp"
 #include "core/types.hpp"
 
+// TODO: use fftw_malloc in PlaneField instead of vector
+
 namespace diffraction {
-FFT2D::FFT2D(PlaneField& fft) : fftRef_(fft) {
-        
-    fftw_complex* data = &fieldValueToFftw(*fft.getRawData());
-    
-    plan_ = fftw_plan_dft_2d(fft.getYSize(), fft.getXSize(),
-                             data,
-                             data,
-                             FFTW_FORWARD,
-                             FFTW_ESTIMATE);
+void FFT2D::transform(PlaneField& input) const {
+    auto *dataPtr = &fieldValueToFftw(*input.getRawData());
+
+    fftw_plan plan_ = fftw_plan_dft_2d(input.getYSize(), input.getXSize(),
+                                       dataPtr,
+                                       dataPtr,
+                                       FFTW_FORWARD,
+                                       FFTW_ESTIMATE | FFTW_UNALIGNED);
 
     if (!plan_) {
         throw std::runtime_error("Failed to create FFTW plan");
     }
-} 
 
-FFT2D::~FFT2D() {
-    if (plan_) {
-        fftw_destroy_plan(plan_);
-    }
-}
-
-PlaneField& FFT2D::transform(PlaneField& input) const {
-    auto& fft = fftRef_.get();
-
-    if (fft.getXSize() != input.getXSize()) {
-        throw std::runtime_error{"X size of multiplied plane fields is not equal"};
-    }
-
-    if (fft.getYSize() != input.getYSize()) {
-        throw std::runtime_error{"X size of multiplied plane fields is not equal"};
-    }
-
-    auto *dataPtr = &fieldValueToFftw(*input.getRawData());
     fftw_execute_dft(plan_, dataPtr, dataPtr);
 
-    return input;
+    fftw_destroy_plan(plan_);
 }
 
-FFT2DInverse::FFT2DInverse(PlaneField& fftInverse) : 
-    fftInverseRef_(fftInverse)
-{
-    const auto rows = fftInverse.getYSize();
-    const auto cols = fftInverse.getXSize();
+void FFT2DInverse::transform(PlaneField& input) const {
+    auto *dataPtr = &fieldValueToFftw(*input.getRawData());
 
-    fftw_complex* data = &fieldValueToFftw(*fftInverse.getRawData());
-    
-    plan_ = fftw_plan_dft_2d(rows, cols,
-                             data,
-                             data,
-                             FFTW_BACKWARD,
-                             FFTW_ESTIMATE);
-    
+    fftw_plan plan_ = fftw_plan_dft_2d(input.getYSize(), input.getXSize(),
+                                       dataPtr,
+                                       dataPtr,
+                                       FFTW_BACKWARD,
+                                       FFTW_ESTIMATE | FFTW_UNALIGNED);
+
     if (!plan_) {
         throw std::runtime_error("Failed to create FFTW plan");
     }
-}
 
-FFT2DInverse::~FFT2DInverse() {
-    if (plan_) {
-        fftw_destroy_plan(plan_);
-    }
-}
-
-PlaneField& FFT2DInverse::transform(PlaneField& input) const {
-    auto& fftInverse = fftInverseRef_.get();
-
-    if (fftInverse.getXSize() != input.getXSize()) {
-        throw std::runtime_error{"X size of multiplied plane fields is not equal"};
-    }
-
-    if (fftInverse.getYSize() != input.getYSize()) {
-        throw std::runtime_error{"X size of multiplied plane fields is not equal"};
-    }
-
-    auto *dataPtr = &fieldValueToFftw(*input.getRawData());
     fftw_execute_dft(plan_, dataPtr, dataPtr);
 
-    return input;
+    fftw_destroy_plan(plan_);
 }
 } // namespace diffraction

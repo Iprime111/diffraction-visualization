@@ -17,7 +17,6 @@ constexpr std::size_t kSize = 4;
 
 TEST(FFT2DTest, ForwardTransform) {
     diffraction::PlaneField input(kSize, kSize);
-    diffraction::PlaneField fftResult(kSize, kSize);
 
     for (std::size_t y = 0; y < kSize; ++y) {
         for (std::size_t x = 0; x < kSize; ++x) {
@@ -25,7 +24,7 @@ TEST(FFT2DTest, ForwardTransform) {
         }
     }
 
-    diffraction::FFT2D fft(fftResult);
+    diffraction::FFT2D fft;
     fft.transform(input);
 
     for (std::size_t y = 0; y < kSize; ++y) {
@@ -38,7 +37,6 @@ TEST(FFT2DTest, ForwardTransform) {
 
 TEST(FFT2DTest, InverseTransform) {
     diffraction::PlaneField input(kSize, kSize);
-    diffraction::PlaneField fftInverseResult(kSize, kSize);
 
     for (std::size_t y = 0; y < kSize; ++y) {
         for (std::size_t x = 0; x < kSize; ++x) {
@@ -46,7 +44,7 @@ TEST(FFT2DTest, InverseTransform) {
         }
     }
 
-    diffraction::FFT2DInverse fftInverse(fftInverseResult);
+    diffraction::FFT2DInverse fftInverse;
     fftInverse.transform(input);
 
     const double expected_value = kSize * kSize;
