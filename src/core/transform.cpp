@@ -4,7 +4,7 @@
 #include "core/plane_field.hpp"
 
 namespace diffraction {
-PlaneField& MultiplyTransformer::transform(PlaneField& input) const {
+void MultiplyTransformer::transform(PlaneField& input) const {
     auto& multiplier = multiplierRef_.get();
 
     if (multiplier.getXSize() != input.getXSize()) {
@@ -20,16 +20,12 @@ PlaneField& MultiplyTransformer::transform(PlaneField& input) const {
 
         *inputIt *= *multiplierIt;
     }
-
-    return input;
 }
 
-PlaneField& NormTransformer::transform(PlaneField& input) const {
+void NormTransformer::transform(PlaneField& input) const {
     for (auto &value : input) {
         value = std::norm(value);
     }
-
-    return input;
 }
 
 } // namespace diffraction

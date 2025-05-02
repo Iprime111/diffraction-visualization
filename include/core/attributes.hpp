@@ -1,5 +1,9 @@
 #pragma once
 
+#include <fmt/format.h>
+
+#define DIFFRACTION_CRITICAL(...) throw std::runtime_error(fmt::format(__VA_ARGS__))
+
 #define DIFFRACTION_NODISCARD [[nodiscard]]
 
 namespace diffraction {

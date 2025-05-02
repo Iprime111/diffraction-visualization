@@ -30,7 +30,7 @@ class MultiplyTransformer final : NonCopyable {
   public:
     explicit MultiplyTransformer(PlaneField& multiplier) : multiplierRef_(multiplier) {}
 
-    PlaneField& transform(PlaneField& input) const;
+    void transform(PlaneField& input) const;
 
   private:
     std::reference_wrapper<PlaneField> multiplierRef_;
@@ -38,6 +38,6 @@ class MultiplyTransformer final : NonCopyable {
 
 class NormTransformer final {
   public:
-    PlaneField& transform(PlaneField& input) const;
+    void transform(PlaneField& input) const;
 };
 } // namespace diffraction

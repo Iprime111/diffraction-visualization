@@ -29,19 +29,15 @@ class PlaneField {
         friend PlaneField;
 
       public:
-        RowProxy(const RowProxy&) = delete;
-        RowProxy &operator=(const RowProxy&) = delete;
-
         DIFFRACTION_NODISCARD FieldValue &operator[](std::size_t column) {
             return *(rowIterator_ + column);
         }
 
       private:
-        RowProxy(const iterator &rowIterator, std::size_t rowSize) :
-            rowIterator_(rowIterator), rowSize_(rowSize) {}
+        RowProxy(const iterator &rowIterator) :
+            rowIterator_(rowIterator) {}
 
         iterator rowIterator_;
-        std::size_t rowSize_{0};
     };
 
     PlaneField(std::size_t xSize, std::size_t ySize) : 
@@ -58,7 +54,7 @@ class PlaneField {
     virtual ~PlaneField() = default;
 
     DIFFRACTION_NODISCARD RowProxy operator[](std::size_t row) {
-        return RowProxy{fieldValues_.begin() + row * xSize_, xSize_};
+        return RowProxy{fieldValues_.begin() + row * xSize_};
     }
 
     DIFFRACTION_NODISCARD FieldValue *getRawData() {
@@ -78,7 +74,7 @@ class PlaneField {
     }
 
     DIFFRACTION_NODISCARD auto end() {
-        return fieldValues_.begin();
+        return fieldValues_.end();
     }
 
     DIFFRACTION_NODISCARD auto begin() const {
