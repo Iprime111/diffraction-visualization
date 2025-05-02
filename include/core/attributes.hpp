@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdexcept>
 #include <fmt/format.h>
 
 #define DIFFRACTION_CRITICAL(...) throw std::runtime_error(fmt::format(__VA_ARGS__))

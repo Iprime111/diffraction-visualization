@@ -1,6 +1,5 @@
-#include <stdexcept>
-
 #include "core/transform.hpp"
+#include "core/attributes.hpp"
 #include "core/plane_field.hpp"
 
 namespace diffraction {
@@ -8,11 +7,11 @@ void MultiplyTransformer::transform(PlaneField& input) const {
     auto& multiplier = multiplierRef_.get();
 
     if (multiplier.getXSize() != input.getXSize()) {
-        throw std::runtime_error{"X size of multiplied plane fields is not equal"};
+        DIFFRACTION_CRITICAL("X size of multiplied plane fields is not equal");
     }
 
     if (multiplier.getYSize() != input.getYSize()) {
-        throw std::runtime_error{"X size of multiplied plane fields is not equal"};
+        DIFFRACTION_CRITICAL("X size of multiplied plane fields is not equal");
     }
 
     for (auto inputIt = input.begin(), multiplierIt = multiplier.begin(), inputEnd = input.end();

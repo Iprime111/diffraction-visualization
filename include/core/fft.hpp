@@ -1,11 +1,6 @@
 #pragma once
 
-#include <cstddef>
-#include <functional>
-#include <stdexcept>
-
 #include "core/attributes.hpp"
-#include "core/types.hpp"
 #include "core/plane_field.hpp"
 
 namespace diffraction {

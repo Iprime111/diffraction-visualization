@@ -1,13 +1,12 @@
 #include <fftw3.h>
-#include <stdexcept>
 #include <fmt/format.h>
 
 #include "core/fft.hpp"
+#include "core/attributes.hpp"
 #include "core/plane_field.hpp"
-#include "core/transform.hpp"
 #include "core/types.hpp"
 
-// TODO: use fftw_malloc in PlaneField instead of vector
+// TODO use fftw_malloc in PlaneField instead of vector to remove FFTW_UNALIGNED
 
 namespace diffraction {
 void FFT2D::transform(PlaneField& input) const {
@@ -20,11 +19,10 @@ void FFT2D::transform(PlaneField& input) const {
                                        FFTW_ESTIMATE | FFTW_UNALIGNED);
 
     if (!plan_) {
-        throw std::runtime_error("Failed to create FFTW plan");
+        DIFFRACTION_CRITICAL("Failed to create FFTW plan");
     }
 
     fftw_execute_dft(plan_, dataPtr, dataPtr);
-
     fftw_destroy_plan(plan_);
 }
 
@@ -38,11 +36,10 @@ void FFT2DInverse::transform(PlaneField& input) const {
                                        FFTW_ESTIMATE | FFTW_UNALIGNED);
 
     if (!plan_) {
-        throw std::runtime_error("Failed to create FFTW plan");
+        DIFFRACTION_CRITICAL("Failed to create FFTW plan");
     }
 
     fftw_execute_dft(plan_, dataPtr, dataPtr);
-
     fftw_destroy_plan(plan_);
 }
 } // namespace diffraction
