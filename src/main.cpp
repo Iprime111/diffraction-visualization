@@ -4,6 +4,8 @@
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Window/WindowEnums.hpp>
 #include <SFML/Window.hpp>
+#include <SFML/Graphics/Image.hpp>
+#include <CLI/CLI.hpp>
 #include <algorithm>
 #include <cstdint>
 #include <vector>
@@ -25,8 +27,25 @@ void getIntensityRgbData(diffraction::MonochromaticField& field, std::vector<dif
 void fillTextureWithRgb( std::vector<diffraction::RGBData>& rgbData, std::vector<std::uint8_t>& texturePixels);
 } // namespace
 
-int main() {
+int main(int argc, char** argv) {
     // TODO handle exceptions
+
+    CLI::App app{"Diffraction"};
+    
+    std::string aperture_path;
+    app.add_option("-a,--aperture", aperture_path, "Path to aperture image file");
+    
+    try {
+        app.parse(argc, argv);
+    } catch (const CLI::ParseError& error) {
+        return app.exit(error);
+    }
+
+    sf::Image aperture;
+    if (!aperture.loadFromFile(aperture_path)) {
+        fmt::print(stderr, "Failed to load aperture image: {}\n", aperture_path);
+        return EXIT_FAILURE;
+    }
 
     sf::RenderWindow window{sf::VideoMode({kWindowWidth, kWindowHeight}), 
                       "Diffraction", sf::Style::Close, sf::State::Windowed};
@@ -63,6 +82,8 @@ int main() {
         window.draw(textureSprite);
         window.display();
     }
+
+    return 0;
 }
 
 namespace {

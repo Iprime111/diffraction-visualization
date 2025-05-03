@@ -23,6 +23,12 @@ CPMAddPackage(
     GIT_SHALLOW
 )
 
+CPMAddPackage(
+    NAME CLI11
+    GITHUB_REPOSITORY CLIUtils/CLI11
+    GIT_TAG v2.5.0
+)
+
 find_package(PkgConfig REQUIRED)
 pkg_search_module(FFTW REQUIRED fftw3 IMPORTED_TARGET)
 
@@ -35,7 +41,7 @@ target_compile_features(diffraction-visualize PUBLIC cxx_std_20)
 
 # Link libs
 
-target_link_libraries(diffraction-visualize PUBLIC PkgConfig::FFTW fmt::fmt SFML::Graphics)
+target_link_libraries(diffraction-visualize PUBLIC PkgConfig::FFTW fmt::fmt SFML::Graphics CLI11::CLI11)
 target_include_directories(diffraction-visualize PUBLIC PkgConfig::FFTW )
 
 
