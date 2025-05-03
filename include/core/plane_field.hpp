@@ -28,6 +28,7 @@ struct PlainFieldStorage {
 
 class PlaneField : detail::PlainFieldStorage {
   public:
+    // TODO reverse iterators?
     template<typename DataType>
     class Iterator final : public std::random_access_iterator_tag {
       public:
@@ -63,7 +64,7 @@ class PlaneField : detail::PlainFieldStorage {
             return itPointer_ - other.itPointer_;
         }
 
-        reference operator[](difference_type diff) {
+        reference operator[](difference_type diff) const {
             return *(itPointer_ + diff);
         }
 
@@ -101,11 +102,11 @@ class PlaneField : detail::PlainFieldStorage {
             return Iterator<DataType>{itPointer_++};
         }
 
-        reference operator*() {
+        reference operator*() const {
             return *itPointer_;
         }
 
-        pointer operator->() {
+        pointer operator->() const {
             return itPointer_;
         }
 
@@ -117,6 +118,8 @@ class PlaneField : detail::PlainFieldStorage {
 
     using iterator = Iterator<FieldValue>;
     using const_iterator = Iterator<const FieldValue>;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
     using reference = iterator::reference;
     using const_reference = const_iterator::reference;
     using pointer = iterator::pointer;
@@ -181,6 +184,22 @@ class PlaneField : detail::PlainFieldStorage {
 
     DIFFRACTION_NODISCARD auto end() const {
         return const_iterator{dataFinish_};
+    }
+
+    DIFFRACTION_NODISCARD auto rbegin() {
+        return reverse_iterator{end()};
+    }
+
+    DIFFRACTION_NODISCARD auto rend() {
+        return reverse_iterator{begin()};
+    }
+
+    DIFFRACTION_NODISCARD auto rbegin() const {
+        return const_reverse_iterator{end()};
+    }
+
+    DIFFRACTION_NODISCARD auto rend() const {
+        return const_reverse_iterator{begin()};
     }
 
     DIFFRACTION_NODISCARD RowProxy operator[](std::size_t row) {

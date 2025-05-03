@@ -35,6 +35,11 @@ TEST(PlaneFieldTest, Iteration) {
             EXPECT_EQ(field[y][x].real(), acc++);
         }
     }
+
+    acc = 16;
+    for (auto it = field.rbegin(), end = field.rend(); it != end; it++) {
+        EXPECT_EQ(it->real(), acc--);
+    }
 }
 
 TEST(PlaneFieldTest, Iterators) {
@@ -66,4 +71,15 @@ TEST(PlaneFieldTest, Iterators) {
 
     EXPECT_EQ(it, field.begin());
     EXPECT_NE(it, field.end());
+
+    *it = 0;
+    EXPECT_EQ(it->real(), 0);
+
+    auto rIt = field.rbegin();
+
+    EXPECT_EQ(rIt->real(), 16);
+    EXPECT_EQ((++rIt)->real(), 15);
+
+    *rIt = 0;
+    EXPECT_EQ(rIt->real(), 0);
 }

@@ -43,6 +43,7 @@ int main() {
 
     auto aaa = texturePixels.end();
     aaa++;
+    texturePixels.rend();
 
     diffraction::MonochromaticField resultField{kWindowWidth, kWindowHeight, kUsedWavelength};
     for (auto& value : resultField) {
