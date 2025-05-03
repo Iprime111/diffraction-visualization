@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "conversions/wavelength_lookup.hpp"
+#include "core/attributes.hpp"
 #include "core/plane_field.hpp"
 #include "core/transform.hpp"
 #include "fmt/base.h"
@@ -31,19 +32,15 @@ int main(int argc, char** argv) {
     // TODO handle exceptions
 
     CLI::App app{"Diffraction"};
-    
     std::string aperture_path;
-    app.add_option("-a,--aperture", aperture_path, "Path to aperture image file");
-    
-    try {
-        app.parse(argc, argv);
-    } catch (const CLI::ParseError& error) {
-        return app.exit(error);
-    }
+    app.add_option("-a,--aperture", aperture_path, "Path to aperture image file")
+       ->check(CLI::ExistingFile);
+
+    CLI11_PARSE(app, argc, argv);
 
     sf::Image aperture;
     if (!aperture.loadFromFile(aperture_path)) {
-        fmt::print(stderr, "Failed to load aperture image: {}\n", aperture_path);
+        DIFFRACTION_CRITICAL("Failed to load aperture image: {}\n", aperture_path);
         return EXIT_FAILURE;
     }
 
