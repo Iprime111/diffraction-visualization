@@ -34,10 +34,11 @@ int main(int argc, char** argv) {
     CLI::App app{"Diffraction"};
 
     std::string aperture_path;
-    app.add_option("aperture_file", aperture_path, "Path to aperture image file")
+    app.add_option("-f,--aperture_file", aperture_path, 
+                  "Path to input aperture image file\n")
        ->required()
        ->check(CLI::ExistingFile);
-       
+
     CLI11_PARSE(app, argc, argv);
 
     sf::Image aperture;
