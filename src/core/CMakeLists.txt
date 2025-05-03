@@ -1,5 +1,6 @@
 set(DIFFRACTION_VISUALIZE_CORE_SOURCES plane_field.cpp
                                        fft.cpp
+                                       aperture.cpp
                                        transform.cpp)
 
 list(TRANSFORM DIFFRACTION_VISUALIZE_CORE_SOURCES PREPEND ${CMAKE_CURRENT_SOURCE_DIR}/)
