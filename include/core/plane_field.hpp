@@ -1,27 +1,129 @@
 #pragma once
 
+#include <compare>
 #include <cstddef>
 #include <cstring>
-#include <vector>
+#include <iterator>
+#include <type_traits>
 
 #include "core/types.hpp"
 #include "core/attributes.hpp"
 
 namespace diffraction {
+namespace detail {
+struct PlainFieldStorage {
+    explicit PlainFieldStorage(std::size_t storageSize);
+    ~PlainFieldStorage();
 
-class PlaneField {
-  private:
-    std::vector<FieldValue> fieldValues_;
+    PlainFieldStorage(const PlainFieldStorage& other);
+    PlainFieldStorage& operator=(const PlainFieldStorage& other);
 
-    using ContainerType = decltype(fieldValues_);
+    PlainFieldStorage(PlainFieldStorage&& other);
+    PlainFieldStorage& operator=(PlainFieldStorage&& other);
+
+    FieldValue* data_;
+    FieldValue* dataFinish_;
+};
+} // namespace detail
+
+class PlaneField : detail::PlainFieldStorage {
   public:
-    using iterator = ContainerType::iterator;
-    using const_iterator = ContainerType::const_iterator;
-    using reference = ContainerType::reference;
-    using const_reference = ContainerType::const_reference;
-    using difference_type = ContainerType::difference_type;
-    using value_type = ContainerType::value_type;
-    using size_type = ContainerType::size_type;
+    template<typename DataType>
+    class Iterator final : public std::random_access_iterator_tag {
+      public:
+        using value_type = DataType;
+        using difference_type = std::ptrdiff_t;
+        using reference = std::add_lvalue_reference_t<DataType>;
+        using pointer = std::add_pointer_t<DataType>;
+        using iterator_category = std::random_access_iterator_tag;
+
+        friend PlaneField;
+
+        Iterator() : itPointer_(nullptr) {}
+
+        Iterator<DataType>& operator+=(difference_type diff) {
+            itPointer_ += diff;
+            return *this;
+        }
+
+        Iterator<DataType>& operator-=(difference_type diff) {
+            itPointer_ -= diff;
+            return *this;
+        }
+
+        Iterator<DataType> operator+(difference_type diff) const {
+            return Iterator<DataType>{itPointer_ + diff};
+        }
+
+        Iterator<DataType> operator-(difference_type diff) const {
+            return Iterator<DataType>{itPointer_ - diff};
+        }
+
+        difference_type operator-(const Iterator<DataType>& other) const {
+            return itPointer_ - other.itPointer_;
+        }
+
+        reference operator[](difference_type diff) {
+            return *(itPointer_ + diff);
+        }
+
+        std::strong_ordering operator<=>(const Iterator<DataType>& other) const {
+            if (itPointer_ > other.itPointer_) {
+                return std::strong_ordering::greater;
+            } else if (itPointer_ < other.itPointer_) {
+                return std::strong_ordering::less;
+            }
+
+            return std::strong_ordering::equal;
+        }
+
+        bool operator==(const Iterator<DataType>& other) const {
+            return itPointer_ == other.itPointer_;
+        }
+
+        bool operator!=(const Iterator<DataType>& other) const = default;
+
+        Iterator<DataType>& operator--() {
+            itPointer_--;
+            return *this;
+        }
+
+        Iterator<DataType> operator--(int) {
+            return Iterator<DataType>{itPointer_--};
+        }
+
+        Iterator<DataType>& operator++() {
+            itPointer_++;
+            return *this;
+        }
+
+        Iterator<DataType> operator++(int) {
+            return Iterator<DataType>{itPointer_++};
+        }
+
+        reference operator*() {
+            return *itPointer_;
+        }
+
+        pointer operator->() {
+            return itPointer_;
+        }
+
+      private:
+        Iterator(pointer ptr) : itPointer_(ptr) {}
+
+        pointer itPointer_;  
+    };
+
+    using iterator = Iterator<FieldValue>;
+    using const_iterator = Iterator<const FieldValue>;
+    using reference = iterator::reference;
+    using const_reference = const_iterator::reference;
+    using pointer = iterator::pointer;
+    using const_pointer = const_iterator::pointer;
+    using difference_type = std::ptrdiff_t;
+    using value_type = FieldValue;
+    using size_type = std::size_t;
 
     // TODO move methods to cpp file? (This will disable inlining optimizations)
 
@@ -41,7 +143,7 @@ class PlaneField {
     };
 
     PlaneField(std::size_t xSize, std::size_t ySize) : 
-        xSize_(xSize), ySize_(ySize), fieldValues_(xSize * ySize) {}
+        PlainFieldStorage(xSize * ySize), xSize_(xSize), ySize_(ySize) {}
 
     PlaneField(std::size_t xSize, std::size_t ySize, const FieldValue *rawData);
 
@@ -53,12 +155,8 @@ class PlaneField {
 
     virtual ~PlaneField() = default;
 
-    DIFFRACTION_NODISCARD RowProxy operator[](std::size_t row) {
-        return RowProxy{fieldValues_.begin() + row * xSize_};
-    }
-
     DIFFRACTION_NODISCARD FieldValue *getRawData() {
-        return fieldValues_.data();  
+        return data_;
     }
 
     DIFFRACTION_NODISCARD auto getXSize() const {
@@ -70,19 +168,23 @@ class PlaneField {
     }
 
     DIFFRACTION_NODISCARD auto begin() {
-        return fieldValues_.begin();
+        return iterator{data_};
     }
 
     DIFFRACTION_NODISCARD auto end() {
-        return fieldValues_.end();
+        return iterator{dataFinish_};
     }
 
     DIFFRACTION_NODISCARD auto begin() const {
-        return fieldValues_.begin();
+        return const_iterator{data_};
     }
 
     DIFFRACTION_NODISCARD auto end() const {
-        return fieldValues_.end();
+        return const_iterator{dataFinish_};
+    }
+
+    DIFFRACTION_NODISCARD RowProxy operator[](std::size_t row) {
+        return RowProxy{begin() + row * xSize_};
     }
 
   private:
