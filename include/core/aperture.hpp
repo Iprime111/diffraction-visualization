@@ -7,7 +7,6 @@
 #include "core/plane_field.hpp"
 #include "core/attributes.hpp"
 
-
 namespace diffraction {
 class Aperture : public PlaneField {
   public:

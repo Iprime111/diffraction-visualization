@@ -11,9 +11,9 @@ CPMAddPackage(
 )
 
 CPMAddPackage(
-  NAME googletest
-  GITHUB_REPOSITORY google/googletest
-  GIT_TAG v1.17.0
+    NAME googletest
+    GITHUB_REPOSITORY google/googletest
+    GIT_TAG v1.17.0
 )
 
 CPMAddPackage(
@@ -21,6 +21,12 @@ CPMAddPackage(
     GITHUB_REPOSITORY SFML/SFML
     GIT_TAG 3.0.1
     GIT_SHALLOW
+)
+
+CPMAddPackage(
+    NAME CLI11
+    GITHUB_REPOSITORY CLIUtils/CLI11
+    GIT_TAG v2.5.0
 )
 
 find_package(PkgConfig REQUIRED)
@@ -35,7 +41,7 @@ target_compile_features(diffraction-visualize PUBLIC cxx_std_20)
 
 # Link libs
 
-target_link_libraries(diffraction-visualize PUBLIC PkgConfig::FFTW fmt::fmt SFML::Graphics)
+target_link_libraries(diffraction-visualize PUBLIC PkgConfig::FFTW fmt::fmt SFML::Graphics CLI11::CLI11)
 target_include_directories(diffraction-visualize PUBLIC PkgConfig::FFTW )
 
 
