@@ -28,12 +28,12 @@ class Transformable final : NonCopyable {
 
 class MultiplyTransformer final : NonCopyable {
   public:
-    explicit MultiplyTransformer(PlaneField& multiplier) : multiplierRef_(multiplier) {}
+    explicit MultiplyTransformer(const PlaneField& multiplier) : multiplierRef_(multiplier) {}
 
     void transform(PlaneField& input) const;
 
   private:
-    std::reference_wrapper<PlaneField> multiplierRef_;
+    std::reference_wrapper<const PlaneField> multiplierRef_;
 };
 
 class NormTransformer final {
