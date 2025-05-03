@@ -22,7 +22,7 @@ FFTPlan<FFT2D>::FFTPlan(std::size_t xSize, std::size_t ySize) : xSize_(xSize), y
                              planArray,
                              planArray,
                              FFTW_FORWARD,
-                             FFTW_ESTIMATE | FFTW_UNALIGNED);
+                             FFTW_ESTIMATE);
 
     fftw_free(planArray);
 
@@ -43,7 +43,7 @@ FFTPlan<FFT2DInverse>::FFTPlan(std::size_t xSize, std::size_t ySize) : xSize_(xS
                              planArray,
                              planArray,
                              FFTW_BACKWARD,
-                             FFTW_ESTIMATE | FFTW_UNALIGNED);
+                             FFTW_ESTIMATE);
 
     fftw_free(planArray);
 

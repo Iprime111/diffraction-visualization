@@ -41,10 +41,6 @@ int main() {
 
     sf::Sprite textureSprite{texture};
 
-    auto aaa = texturePixels.end();
-    aaa++;
-    texturePixels.rend();
-
     diffraction::MonochromaticField resultField{kWindowWidth, kWindowHeight, kUsedWavelength};
     for (auto& value : resultField) {
         value = 1.0;
