@@ -66,7 +66,7 @@ class CoordinatesTransformer final {
                 lambda_(x, y, input[y][x]);
             }
         }
-    };
+    }
 
   private:
     Lambda lambda_;
