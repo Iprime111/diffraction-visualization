@@ -5,18 +5,18 @@
 #include <SFML/Window/WindowEnums.hpp>
 #include <SFML/Window.hpp>
 #include <SFML/Graphics/Image.hpp>
+#include <SFML/Window/Keyboard.hpp>
+#include <fmt/base.h>
 #include <CLI/CLI.hpp>
 #include <algorithm>
 #include <cstdint>
 #include <vector>
 
-#include "SFML/Window/Keyboard.hpp"
 #include "conversions/wavelength_lookup.hpp"
 #include "core/attributes.hpp"
 #include "core/plane_field.hpp"
 #include "core/transform.hpp"
 #include "core/aperture.hpp"
-#include "fmt/base.h"
 
 constexpr auto kWindowWidth = 800;
 constexpr auto kWindowHeight = 600;

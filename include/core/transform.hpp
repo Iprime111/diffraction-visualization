@@ -44,8 +44,7 @@ class NormTransformer final {
 
 class FillTransformer final {
   public:
-    explicit FillTransformer(const FieldValue& value) : value_(value) {}
-    explicit FillTransformer(FieldValue&& value) : value_(std::move(value)) {}
+    explicit FillTransformer(FieldValue value) : value_(value) {}
 
     void transform(PlaneField& input) const;
 
@@ -54,22 +53,22 @@ class FillTransformer final {
 };
 
 template<typename Lambda>
-class CoordinatesTransformer {
-public:
-    explicit CoordinatesTransformer(Lambda&& lambda) : lambda_(std::forward<Lambda>(lambda)) {}
+class CoordinatesTransformer final {
+  public:
+    explicit CoordinatesTransformer(Lambda lambda) : lambda_(std::move(lambda)) {}
 
     void transform(PlaneField& input) const {
-        const std::size_t& ySize = input.getYSize();
-        const std::size_t& xSize = input.getXSize();
+        const auto& ySize = input.getYSize();
+        const auto& xSize = input.getXSize();
 
-        for (std::size_t y = 0; y < ySize; ++y) {
-            for (std::size_t x = 0; x < xSize; ++x) {
+        for (auto y = 0; y < ySize; ++y) {
+            for (auto x = 0; x < xSize; ++x) {
                 lambda_(x, y, input[y][x]);
             }
         }
     };
 
-private:
+  private:
     Lambda lambda_;
 };
 } // namespace diffraction
