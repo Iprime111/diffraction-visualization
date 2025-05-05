@@ -10,22 +10,29 @@
 #include <cstdint>
 #include <vector>
 
+#include "SFML/Window/Keyboard.hpp"
 #include "conversions/wavelength_lookup.hpp"
 #include "core/attributes.hpp"
 #include "core/plane_field.hpp"
 #include "core/transform.hpp"
+#include "core/aperture.hpp"
 #include "fmt/base.h"
 
 constexpr auto kWindowWidth = 800;
 constexpr auto kWindowHeight = 600;
 constexpr auto kPixelComponentsCount = 4; // RGBA
+constexpr auto kWavelengthStep = 5;
+constexpr auto kDefaultThreshold = 0.5;
                                        
 // TODO remove
 constexpr auto kUsedWavelength = 430.0;
+constexpr auto kMinimumWavelength = 380.0; 
+constexpr auto kMaximumWavelength = 779.0; 
 
 namespace {
 void getIntensityRgbData(diffraction::MonochromaticField& field, std::vector<diffraction::RGBData>& rgbData);
 void fillTextureWithRgb( std::vector<diffraction::RGBData>& rgbData, std::vector<std::uint8_t>& texturePixels);
+bool handleEvents(sf::RenderWindow& window, diffraction::MonochromaticField& field);
 } // namespace
 
 int main(int argc, char** argv) {
@@ -33,17 +40,17 @@ int main(int argc, char** argv) {
 
     CLI::App app{"Diffraction"};
 
-    std::string aperture_path;
-    app.add_option("-f,--aperture_file", aperture_path, 
+    std::string aperturePath;
+    app.add_option("-f,--aperture_file", aperturePath, 
                   "Path to input aperture image file\n")
        ->required()
        ->check(CLI::ExistingFile);
 
     CLI11_PARSE(app, argc, argv);
 
-    sf::Image aperture;
-    if (!aperture.loadFromFile(aperture_path)) {
-        DIFFRACTION_CRITICAL("Failed to load aperture image: {}\n", aperture_path);
+    sf::Image apertureImage;
+    if (!apertureImage.loadFromFile(aperturePath)) {
+        DIFFRACTION_CRITICAL("Failed to load aperture image: {}\n", aperturePath);
         return EXIT_FAILURE;
     }
 
@@ -61,23 +68,22 @@ int main(int argc, char** argv) {
     sf::Sprite textureSprite{texture};
 
     diffraction::MonochromaticField resultField{kWindowWidth, kWindowHeight, kUsedWavelength};
+    // TODO perform actual simulation
     for (auto& value : resultField) {
         value = 1.0;
     }
 
-    getIntensityRgbData(resultField, rgbData);
-    fillTextureWithRgb(rgbData, texturePixels);
-    texture.update(texturePixels.data());
+    diffraction::Aperture aperture(apertureImage, resultField.getXSize(), resultField.getYSize(), kDefaultThreshold);
 
     while (window.isOpen()) {
-        while (auto event = window.pollEvent()) {
-            if (event->is<sf::Event::Closed>()) {
-                window.close();
-            }
+        if (!handleEvents(window, resultField)) {
+            window.close();
+            break;
         }
     
-        // TODO perform actual simulation
-
+        getIntensityRgbData(resultField, rgbData);
+        fillTextureWithRgb(rgbData, texturePixels);
+        texture.update(texturePixels.data());
 
         window.draw(textureSprite);
         window.display();
@@ -101,16 +107,40 @@ void getIntensityRgbData(diffraction::MonochromaticField& field, std::vector<dif
     diffraction::Transformable{rgbData}.transform(diffraction::RgbNormTransform{});
 }
 
-void fillTextureWithRgb( std::vector<diffraction::RGBData>& rgbData, std::vector<std::uint8_t>& texturePixels) {
+void fillTextureWithRgb(std::vector<diffraction::RGBData>& rgbData, std::vector<std::uint8_t>& texturePixels) {
+    constexpr auto kMaxChannelValue = 255;
 
     for (auto pixelIdx = 0; pixelIdx < kWindowWidth * kWindowHeight; ++pixelIdx) {
-        constexpr auto kMaxChannelValue = 255;
-
         auto pixelComponentIdx = pixelIdx * kPixelComponentsCount;
 
         texturePixels[pixelComponentIdx] = rgbData[pixelIdx].r * kMaxChannelValue;
         texturePixels[pixelComponentIdx + 1] = rgbData[pixelIdx].g * kMaxChannelValue;
         texturePixels[pixelComponentIdx + 2] = rgbData[pixelIdx].b * kMaxChannelValue;
     }
+}
+
+bool handleEvents(sf::RenderWindow& window, diffraction::MonochromaticField& field) {
+    while (auto event = window.pollEvent()) {
+        if (event->is<sf::Event::Closed>()) {
+            return false;;
+        }
+        else if (auto keyEvent = event->getIf<sf::Event::KeyPressed>()) {
+            switch (keyEvent->scancode) {
+                case sf::Keyboard::Scancode::Up:
+                    field.setWavelength(std::min(kMaximumWavelength, field.getWavelength() + kWavelengthStep));
+                    break;
+                case sf::Keyboard::Scancode::Down:
+                    field.setWavelength(std::max(kMinimumWavelength, field.getWavelength() - kWavelengthStep));
+                    break;
+                case sf::Keyboard::Scancode::Escape:
+                    return false;
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    return true;
 }
 } // namespace
