@@ -1,7 +1,7 @@
 #pragma once
 
-#include <complex>
 #include <fftw3.h>
+#include <complex>
 
 namespace diffraction {
 using FieldValue = std::complex<double>;
@@ -13,4 +13,4 @@ inline fftw_complex& fieldValueToFftw(FieldValue& value) {
 inline FieldValue& fftwToFieldValue(fftw_complex& value) {
     return reinterpret_cast<FieldValue&>(value);
 }
-} // namespace diffraction
+}  // namespace diffraction

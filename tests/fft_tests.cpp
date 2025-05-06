@@ -1,8 +1,8 @@
-#include <cstddef>
-#include <gtest/gtest.h>
 #include <fftw3.h>
-#include <complex>
 #include <fmt/format.h>
+#include <gtest/gtest.h>
+#include <complex>
+#include <cstddef>
 
 #include "core/fft.hpp"
 #include "core/plane_field.hpp"
@@ -10,7 +10,7 @@
 namespace {
 constexpr double kTolerance = 1e-6;
 constexpr std::size_t kSize = 4;
-}
+}  // namespace
 
 TEST(FFT2DTest, ForwardTransform) {
     diffraction::PlaneField input(kSize, kSize);
@@ -47,7 +47,7 @@ TEST(FFT2DTest, InverseTransform) {
     fftInverse.transform(input);
 
     const double expected_value = 1.0;
-    
+
     for (std::size_t y = 0; y < kSize; ++y) {
         for (std::size_t x = 0; x < kSize; ++x) {
             if (y == 0 && x == 0) {
@@ -58,4 +58,4 @@ TEST(FFT2DTest, InverseTransform) {
             EXPECT_NEAR(0.0, input[y][x].imag(), kTolerance);
         }
     }
-}    
+}

@@ -1,12 +1,8 @@
 #include <fftw3.h>
 #include <fmt/format.h>
 
-#include "core/fft.hpp"
 #include "core/attributes.hpp"
-#include "core/plane_field.hpp"
-#include "core/types.hpp"
-
-// TODO use fftw_malloc in PlaneField instead of vector to remove FFTW_UNALIGNED
+#include "core/fft.hpp"
 
 namespace diffraction {
 template<>
@@ -18,17 +14,14 @@ FFTPlan<FFT2D>::FFTPlan(std::size_t xSize, std::size_t ySize) : xSize_(xSize), y
         DIFFRACTION_CRITICAL("Unable to allocate temporary buffer");
     }
 
-    plan_ = fftw_plan_dft_2d(ySize_, xSize_,
-                             planArray,
-                             planArray,
-                             FFTW_FORWARD,
-                             FFTW_ESTIMATE);
+    plan_ = fftw_plan_dft_2d(ySize_, xSize_, planArray, planArray, FFTW_FORWARD, FFTW_ESTIMATE);
 
     fftw_free(planArray);
 
     if (!plan_) {
         DIFFRACTION_CRITICAL("Failed to create FFTW 2D inverse plan");
-    }}
+    }
+}
 
 template<>
 FFTPlan<FFT2DInverse>::FFTPlan(std::size_t xSize, std::size_t ySize) : xSize_(xSize), ySize_(ySize) {
@@ -39,11 +32,7 @@ FFTPlan<FFT2DInverse>::FFTPlan(std::size_t xSize, std::size_t ySize) : xSize_(xS
         DIFFRACTION_CRITICAL("Unable to allocate temporary buffer");
     }
 
-    plan_ = fftw_plan_dft_2d(ySize_, xSize_,
-                             planArray,
-                             planArray,
-                             FFTW_BACKWARD,
-                             FFTW_ESTIMATE);
+    plan_ = fftw_plan_dft_2d(ySize_, xSize_, planArray, planArray, FFTW_BACKWARD, FFTW_ESTIMATE);
 
     fftw_free(planArray);
 
@@ -52,21 +41,21 @@ FFTPlan<FFT2DInverse>::FFTPlan(std::size_t xSize, std::size_t ySize) : xSize_(xS
     }
 }
 
-void FFT2D::transform(PlaneField& input) const {
+void FFT2D::transform(PlaneField &input) const {
     auto *dataPtr = &fieldValueToFftw(*input.getRawData());
 
     fftw_execute_dft(plan_.get().getPlan(), dataPtr, dataPtr);
 }
 
-void FFT2DInverse::transform(PlaneField& input) const {
+void FFT2DInverse::transform(PlaneField &input) const {
     auto *dataPtr = &fieldValueToFftw(*input.getRawData());
 
     fftw_execute_dft(plan_.get().getPlan(), dataPtr, dataPtr);
 
     double normCoeff = input.getXSize() * input.getYSize();
 
-    for (auto& value : input) {
+    for (auto &value : input) {
         value /= normCoeff;
     }
 }
-} // namespace diffraction
+}  // namespace diffraction

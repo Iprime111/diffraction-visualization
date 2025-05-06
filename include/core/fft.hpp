@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cstddef>
 #include <fftw3.h>
+#include <cstddef>
 #include <functional>
 
 #include "core/attributes.hpp"
@@ -52,18 +52,17 @@ class FFT2D final : NonCopyable {
     FFT2D(const FFTPlan<FFT2D>& plan) : plan_(plan) {}
 
     void transform(PlaneField& input) const;
-  
+
   private:
     std::reference_wrapper<const FFTPlan<FFT2D>> plan_;
 };
 
 class FFT2DInverse final : NonCopyable {
   public:
-
     FFT2DInverse(const FFTPlan<FFT2DInverse>& plan) : plan_(plan) {}
     void transform(PlaneField& input) const;
 
   private:
     std::reference_wrapper<const FFTPlan<FFT2DInverse>> plan_;
 };
-} // namespace diffraction
+}  // namespace diffraction

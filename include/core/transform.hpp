@@ -71,4 +71,4 @@ class CoordinatesTransformer final {
   private:
     Lambda lambda_;
 };
-} // namespace diffraction
+}  // namespace diffraction

@@ -1,4 +1,5 @@
 #include "core/transform.hpp"
+
 #include "core/attributes.hpp"
 #include "core/plane_field.hpp"
 
@@ -15,15 +16,14 @@ void MultiplyTransformer::transform(PlaneField& input) const {
     }
 
     auto multiplierIt = multiplier.begin();
-    for (auto inputIt = input.begin(), inputEnd = input.end();
-         inputIt != inputEnd; ++inputIt, ++multiplierIt) {
-
+    for (auto inputIt = input.begin(), inputEnd = input.end(); inputIt != inputEnd;
+         ++inputIt, ++multiplierIt) {
         *inputIt *= *multiplierIt;
     }
 }
 
 void NormTransformer::transform(PlaneField& input) const {
-    for (auto &value : input) {
+    for (auto& value : input) {
         value = std::norm(value);
     }
 }
@@ -31,4 +31,4 @@ void NormTransformer::transform(PlaneField& input) const {
 void FillTransformer::transform(PlaneField& input) const {
     std::fill(input.begin(), input.end(), value_);
 }
-} // namespace diffraction
+}  // namespace diffraction

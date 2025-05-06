@@ -1,6 +1,5 @@
 #pragma once
 
-#include <stdexcept>
 #include <fmt/format.h>
 
 #define DIFFRACTION_CRITICAL(...) throw std::runtime_error(fmt::format(__VA_ARGS__))
@@ -13,4 +12,4 @@ struct NonCopyable {
     NonCopyable(const NonCopyable&) = delete;
     NonCopyable& operator=(const NonCopyable&) = delete;
 };
-} // namespace diffraction
+}  // namespace diffraction

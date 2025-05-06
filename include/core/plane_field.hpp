@@ -6,8 +6,8 @@
 #include <iterator>
 #include <type_traits>
 
-#include "core/types.hpp"
 #include "core/attributes.hpp"
+#include "core/types.hpp"
 
 namespace diffraction {
 namespace detail {
@@ -18,17 +18,16 @@ struct PlainFieldStorage {
     PlainFieldStorage(const PlainFieldStorage& other);
     PlainFieldStorage& operator=(const PlainFieldStorage& other);
 
-    PlainFieldStorage(PlainFieldStorage&& other); // TODO: noexcept?
-    PlainFieldStorage& operator=(PlainFieldStorage&& other);
+    PlainFieldStorage(PlainFieldStorage&& other) noexcept;
+    PlainFieldStorage& operator=(PlainFieldStorage&& other) noexcept;
 
     FieldValue* data_;
     FieldValue* dataFinish_;
 };
-} // namespace detail
+}  // namespace detail
 
 class PlaneField : detail::PlainFieldStorage {
   public:
-    // TODO reverse iterators?
     template<typename DataType>
     class Iterator final : public std::random_access_iterator_tag {
       public:
@@ -113,7 +112,7 @@ class PlaneField : detail::PlainFieldStorage {
       private:
         Iterator(pointer ptr) : itPointer_(ptr) {}
 
-        pointer itPointer_;  
+        pointer itPointer_;
     };
 
     using iterator = Iterator<FieldValue>;
@@ -134,31 +133,30 @@ class PlaneField : detail::PlainFieldStorage {
         friend PlaneField;
 
       public:
-        DIFFRACTION_NODISCARD FieldValue &operator[](std::size_t column) {
+        DIFFRACTION_NODISCARD FieldValue& operator[](std::size_t column) {
             return *(rowIterator_ + column);
         }
 
       private:
-        RowProxy(const iterator &rowIterator) :
-            rowIterator_(rowIterator) {}
+        RowProxy(const iterator& rowIterator) : rowIterator_(rowIterator) {}
 
         iterator rowIterator_;
     };
 
-    PlaneField(std::size_t xSize, std::size_t ySize) : 
-        PlainFieldStorage(xSize * ySize), xSize_(xSize), ySize_(ySize) {}
+    PlaneField(std::size_t xSize, std::size_t ySize)
+        : PlainFieldStorage(xSize * ySize), xSize_(xSize), ySize_(ySize) {}
 
-    PlaneField(std::size_t xSize, std::size_t ySize, const FieldValue *rawData);
+    PlaneField(std::size_t xSize, std::size_t ySize, const FieldValue* rawData);
 
     PlaneField(const PlaneField&) = default;
-    PlaneField &operator=(const PlaneField&) = default;
+    PlaneField& operator=(const PlaneField&) = default;
 
-    PlaneField(PlaneField&&) = default;
-    PlaneField &operator=(PlaneField&&) = default;
+    PlaneField(PlaneField&&) noexcept = default;
+    PlaneField& operator=(PlaneField&&) noexcept = default;
 
     virtual ~PlaneField() = default;
 
-    DIFFRACTION_NODISCARD FieldValue *getRawData() {
+    DIFFRACTION_NODISCARD FieldValue* getRawData() {
         return data_;
     }
 
@@ -213,11 +211,11 @@ class PlaneField : detail::PlainFieldStorage {
 
 class MonochromaticField final : public PlaneField {
   public:
-    MonochromaticField(std::size_t xSize, std::size_t ySize, double wavelength) : 
-        PlaneField(xSize, ySize), wavelength_(wavelength) {}
+    MonochromaticField(std::size_t xSize, std::size_t ySize, double wavelength)
+        : PlaneField(xSize, ySize), wavelength_(wavelength) {}
 
-    MonochromaticField(std::size_t xSize, std::size_t ySize, FieldValue *rawData, double wavelength) : 
-        PlaneField(xSize, ySize, rawData), wavelength_(wavelength) {}
+    MonochromaticField(std::size_t xSize, std::size_t ySize, FieldValue* rawData, double wavelength)
+        : PlaneField(xSize, ySize, rawData), wavelength_(wavelength) {}
 
     DIFFRACTION_NODISCARD auto getWavelength() const {
         return wavelength_;
@@ -230,4 +228,4 @@ class MonochromaticField final : public PlaneField {
   private:
     double wavelength_;
 };
-} // namespace diffraction
+}  // namespace diffraction

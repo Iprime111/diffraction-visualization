@@ -1,12 +1,12 @@
+
 #include <SFML/Graphics/Image.hpp>
 #include <SFML/System/Vector2.hpp>
 
 #include "core/aperture.hpp"
 
 namespace diffraction {
-Aperture::Aperture(const sf::Image& image, size_t xSize, size_t ySize, double threshold) :
-    PlaneField(xSize, ySize) {
-    
+Aperture::Aperture(const sf::Image& image, size_t xSize, size_t ySize, double threshold)
+    : PlaneField(xSize, ySize) {
     constexpr double kEpsilon = 1e-10;
     if (kEpsilon < (0.0 - threshold) || (threshold - 1.0) > kEpsilon) {
         DIFFRACTION_CRITICAL("Threshold must be between 0.0 and 1.0");
@@ -38,7 +38,7 @@ sf::Image Aperture::scaleImage(const sf::Image& image, std::size_t xSize, std::s
     renderTexture.display();
 
     return renderTexture.getTexture().copyToImage();
-} 
+}
 
 void Aperture::convertToPlaneField(const sf::Image& image, double threshold) {
     const std::size_t& ySize = getYSize();
@@ -56,4 +56,4 @@ void Aperture::convertToPlaneField(const sf::Image& image, double threshold) {
         }
     }
 }
-} // namespace diffraction
+}  // namespace diffraction

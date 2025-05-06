@@ -1,27 +1,22 @@
-#include <complex>
 #include <gtest/gtest.h>
+#include <complex>
 
 #include "core/plane_field.hpp"
 
 namespace {
 constexpr auto kDefaultSize = 4;
 constexpr std::complex<double> kDefaultRawData[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
-}
+}  // namespace
 
 TEST(PlaneFieldTest, Construction) {
-    EXPECT_NO_THROW({
-        diffraction::PlaneField field1(kDefaultSize, kDefaultSize);
-    });
+    EXPECT_NO_THROW({ diffraction::PlaneField field1(kDefaultSize, kDefaultSize); });
 
-
-    EXPECT_NO_THROW({
-        diffraction::PlaneField field2(kDefaultSize, kDefaultSize, kDefaultRawData);
-    });
+    EXPECT_NO_THROW({ diffraction::PlaneField field2(kDefaultSize, kDefaultSize, kDefaultRawData); });
 }
 
 TEST(PlaneFieldTest, Iteration) {
     diffraction::PlaneField field(kDefaultSize, kDefaultSize, kDefaultRawData);
-    
+
     std::size_t acc = 1;
 
     for (auto& value : field) {
@@ -44,7 +39,7 @@ TEST(PlaneFieldTest, Iteration) {
 
 TEST(PlaneFieldTest, Iterators) {
     diffraction::PlaneField field(kDefaultSize, kDefaultSize, kDefaultRawData);
-    
+
     auto it = field.begin();
 
     EXPECT_EQ(it->real(), 1);
