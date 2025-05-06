@@ -12,7 +12,7 @@ void MultiplyTransformer::transform(PlaneField& input) const {
     }
 
     if (multiplier.getYSize() != input.getYSize()) {
-        DIFFRACTION_CRITICAL("X size of multiplied plane fields is not equal");
+        DIFFRACTION_CRITICAL("Y size of multiplied plane fields is not equal");
     }
 
     auto multiplierIt = multiplier.begin();

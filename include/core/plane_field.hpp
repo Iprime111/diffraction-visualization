@@ -5,6 +5,7 @@
 #include <cstring>
 #include <iterator>
 #include <type_traits>
+#include <vector>
 
 #include "core/attributes.hpp"
 #include "core/types.hpp"
@@ -227,5 +228,134 @@ class MonochromaticField final : public PlaneField {
 
   private:
     double wavelength_;
+};
+
+class PolychromaticField final {
+  public:
+    using FieldVector = std::vector<MonochromaticField>;
+    using iterator = FieldVector::iterator;
+    using const_iterator = FieldVector::const_iterator;
+    using reverse_iterator = FieldVector::reverse_iterator;
+    using const_reverse_iterator = FieldVector::const_reverse_iterator;
+
+    using reference = iterator::reference;
+    using const_reference = const_iterator::reference;
+    using pointer = iterator::pointer;
+    using const_pointer = const_iterator::pointer;
+    using difference_type = std::ptrdiff_t;
+    using value_type = MonochromaticField;
+    using size_type = FieldVector::size_type;
+
+    PolychromaticField(std::size_t xSize, std::size_t ySize) : xSize_(xSize), ySize_(ySize) {}
+    PolychromaticField(std::initializer_list<MonochromaticField> fields) {
+        if (fields.size() > 0) {
+            const auto& first = *fields.begin();
+            xSize_ = first.getXSize();
+            ySize_ = first.getYSize();
+
+            for (const auto& field : fields) {
+                if (field.getXSize() != xSize_) {
+                    DIFFRACTION_CRITICAL("X size of fields is not equal");
+                }
+
+                if (field.getYSize() != ySize_) {
+                    DIFFRACTION_CRITICAL("Y size of fields is not equal");
+                }
+            }
+
+            fields_ = fields;
+        }
+    }
+
+    ~PolychromaticField() = default;
+
+    PolychromaticField(const PolychromaticField&) = default;
+    PolychromaticField& operator=(const PolychromaticField&) = default;
+
+    PolychromaticField(PolychromaticField&&) noexcept = default;
+    PolychromaticField& operator=(PolychromaticField&&) noexcept = default;
+
+    DIFFRACTION_NODISCARD auto size() const {
+        return fields_.size();
+    }
+
+    DIFFRACTION_NODISCARD auto getXSize() const {
+        return xSize_;
+    }
+
+    DIFFRACTION_NODISCARD auto getYSize() const {
+        return ySize_;
+    }
+
+    DIFFRACTION_NODISCARD auto begin() {
+        return fields_.begin();
+    }
+
+    DIFFRACTION_NODISCARD auto begin() const {
+        return fields_.begin();
+    }
+
+    DIFFRACTION_NODISCARD auto end() {
+        return fields_.end();
+    }
+
+    DIFFRACTION_NODISCARD auto end() const {
+        return fields_.end();
+    }
+
+    DIFFRACTION_NODISCARD auto rbegin() {
+        return fields_.rbegin();
+    }
+
+    DIFFRACTION_NODISCARD auto rbegin() const {
+        return fields_.rbegin();
+    }
+
+    DIFFRACTION_NODISCARD auto rend() {
+        return fields_.rend();
+    }
+
+    DIFFRACTION_NODISCARD auto rend() const {
+        return fields_.rend();
+    }
+
+    DIFFRACTION_NODISCARD MonochromaticField& operator[](std::size_t index) {
+        return fields_[index];
+    }
+
+    DIFFRACTION_NODISCARD const MonochromaticField& operator[](std::size_t index) const {
+        return fields_[index];
+    }
+
+    void addField(const MonochromaticField& field) {
+        validateFieldSize(field);
+        fields_.push_back(field);
+    }
+
+    void addField(MonochromaticField&& field) {
+        validateFieldSize(field);
+        fields_.push_back(std::move(field));
+    }
+
+  private:
+    void validateFieldSize(const MonochromaticField& field) const {
+        if (field.getXSize() != xSize_) {
+            DIFFRACTION_CRITICAL("X size of fields is not equal");
+        }
+
+        if (field.getYSize() != ySize_) {
+            DIFFRACTION_CRITICAL("Y size of fields is not equal");
+        }
+    }
+
+    void validateFieldSizes() const {
+        for (const auto& field : fields_) {
+            validateFieldSize(field);
+        }
+    }
+
+    FieldVector fields_;
+    std::size_t xSize_{0};
+    std::size_t ySize_{0};
 };
 }  // namespace diffraction
