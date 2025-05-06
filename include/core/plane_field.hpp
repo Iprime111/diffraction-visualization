@@ -18,7 +18,7 @@ struct PlainFieldStorage {
     PlainFieldStorage(const PlainFieldStorage& other);
     PlainFieldStorage& operator=(const PlainFieldStorage& other);
 
-    PlainFieldStorage(PlainFieldStorage&& other);
+    PlainFieldStorage(PlainFieldStorage&& other); // TODO: noexcept?
     PlainFieldStorage& operator=(PlainFieldStorage&& other);
 
     FieldValue* data_;
@@ -222,6 +222,11 @@ class MonochromaticField final : public PlaneField {
     DIFFRACTION_NODISCARD auto getWavelength() const {
         return wavelength_;
     }
+
+    void setWavelength(double wavelength) {
+        wavelength_ = wavelength;
+    }
+
   private:
     double wavelength_;
 };

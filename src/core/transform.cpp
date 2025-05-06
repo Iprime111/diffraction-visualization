@@ -28,4 +28,7 @@ void NormTransformer::transform(PlaneField& input) const {
     }
 }
 
+void FillTransformer::transform(PlaneField& input) const {
+    std::fill(input.begin(), input.end(), value_);
+}
 } // namespace diffraction

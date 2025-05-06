@@ -4,6 +4,7 @@
 
 #include "core/attributes.hpp"
 #include "core/plane_field.hpp"
+#include "core/types.hpp"
 
 namespace diffraction {
 template<typename Transformer, typename DataType>
@@ -39,5 +40,35 @@ class MultiplyTransformer final : NonCopyable {
 class NormTransformer final {
   public:
     void transform(PlaneField& input) const;
+};
+
+class FillTransformer final {
+  public:
+    explicit FillTransformer(FieldValue value) : value_(value) {}
+
+    void transform(PlaneField& input) const;
+
+  private:
+    FieldValue value_;
+};
+
+template<typename Lambda>
+class CoordinatesTransformer final {
+  public:
+    explicit CoordinatesTransformer(Lambda lambda) : lambda_(std::move(lambda)) {}
+
+    void transform(PlaneField& input) const {
+        const auto& ySize = input.getYSize();
+        const auto& xSize = input.getXSize();
+
+        for (auto y = 0; y < ySize; ++y) {
+            for (auto x = 0; x < xSize; ++x) {
+                lambda_(x, y, input[y][x]);
+            }
+        }
+    }
+
+  private:
+    Lambda lambda_;
 };
 } // namespace diffraction

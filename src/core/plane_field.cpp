@@ -74,4 +74,4 @@ PlaneField::PlaneField(std::size_t xSize, std::size_t ySize, const FieldValue *r
     auto dataSize = dataFinish_ - data_;
     std::copy(rawData, rawData + dataSize, data_);
 }
-}
+} // namespace diffraction
