@@ -231,8 +231,12 @@ class MonochromaticField final : public PlaneField {
 };
 
 class PolychromaticField final {
+    std::vector<MonochromaticField> fields_;
+    std::size_t xSize_{0};
+    std::size_t ySize_{0};
+
   public:
-    using FieldVector = std::vector<MonochromaticField>;
+    using FieldVector = decltype(fields_);
     using iterator = FieldVector::iterator;
     using const_iterator = FieldVector::const_iterator;
     using reverse_iterator = FieldVector::reverse_iterator;
@@ -266,14 +270,6 @@ class PolychromaticField final {
             fields_ = fields;
         }
     }
-
-    ~PolychromaticField() = default;
-
-    PolychromaticField(const PolychromaticField&) = default;
-    PolychromaticField& operator=(const PolychromaticField&) = default;
-
-    PolychromaticField(PolychromaticField&&) noexcept = default;
-    PolychromaticField& operator=(PolychromaticField&&) noexcept = default;
 
     DIFFRACTION_NODISCARD auto size() const {
         return fields_.size();
@@ -353,9 +349,5 @@ class PolychromaticField final {
             validateFieldSize(field);
         }
     }
-
-    FieldVector fields_;
-    std::size_t xSize_{0};
-    std::size_t ySize_{0};
 };
 }  // namespace diffraction
