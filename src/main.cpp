@@ -56,6 +56,7 @@ int main(int argc, char** argv) {
         DIFFRACTION_CRITICAL("Failed to load aperture image: {}", aperturePath);
     }
 
+    // TODO set relative scaling from CLI
     diffraction::Aperture aperture{std::move(apertureImage), kWindowWidth, kWindowHeight};
 
     sf::RenderWindow window{sf::VideoMode({kWindowWidth, kWindowHeight}), kAppTitle, sf::Style::Close,
@@ -77,6 +78,7 @@ int main(int argc, char** argv) {
         .transform(diffraction::FillTransformer{1.0})
         .transform(diffraction::MultiplyTransformer{aperture});
 
+    // TODO change in runtime
     diffraction::LightPropagationSettings lightSettings{
         .propagationLength = 8e8,
         .screenXNm = 6e6,
@@ -101,6 +103,8 @@ int main(int argc, char** argv) {
         getIntensityRgbData(resultField, rgbData);
         fillTextureWithRgb(rgbData, texturePixels);
         texture.update(texturePixels.data());
+
+        // TODO draw axis with degrees
 
         window.draw(textureSprite);
         window.display();
