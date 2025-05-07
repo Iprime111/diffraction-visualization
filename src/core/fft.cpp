@@ -41,13 +41,13 @@ FFTPlan<FFT2DInverse>::FFTPlan(std::size_t xSize, std::size_t ySize) : xSize_(xS
     }
 }
 
-void FFT2D::transform(PlaneField &input) const {
+void FFT2D::transform(PlaneField& input) const {
     auto *dataPtr = &fieldValueToFftw(*input.getRawData());
 
     fftw_execute_dft(plan_.get().getPlan(), dataPtr, dataPtr);
 }
 
-void FFT2DInverse::transform(PlaneField &input) const {
+void FFT2DInverse::transform(PlaneField& input) const {
     auto *dataPtr = &fieldValueToFftw(*input.getRawData());
 
     fftw_execute_dft(plan_.get().getPlan(), dataPtr, dataPtr);

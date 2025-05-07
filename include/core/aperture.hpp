@@ -8,7 +8,7 @@
 namespace diffraction {
 class Aperture : public PlaneField {
   public:
-    Aperture(const sf::Image& image, size_t xSize, size_t ySize, double threshold);
+    Aperture(const sf::Image& image, size_t xSize, size_t ySize, double threshold=0.5);
 
   private:
     sf::Image scaleImage(const sf::Image& image, std::size_t xSize, std::size_t ySize) const;

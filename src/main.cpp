@@ -16,17 +16,18 @@
 #include "conversions/wavelength_lookup.hpp"
 #include "core/aperture.hpp"
 #include "core/attributes.hpp"
+#include "core/fft.hpp"
 #include "core/plane_field.hpp"
 #include "core/transform.hpp"
+#include "physics/propagation.hpp"
 
-constexpr auto kWindowWidth = 800;
-constexpr auto kWindowHeight = 600;
+constexpr auto kWindowWidth = 1024;
+constexpr auto kWindowHeight = 1024;
 constexpr auto kPixelComponentsCount = 4;  // RGBA
 constexpr auto kWavelengthStep = 5;
-constexpr auto kDefaultThreshold = 0.5;
 
 // TODO remove
-constexpr auto kUsedWavelength = 430.0;
+constexpr auto kUsedWavelength = 630.0;
 constexpr auto kMinimumWavelength = 380.0;
 constexpr auto kMaximumWavelength = 779.0;
 
@@ -44,7 +45,7 @@ int main(int argc, char** argv) {
     CLI::App app{kAppTitle};
 
     std::string aperturePath;
-    app.add_option("-f,--aperture_file", aperturePath, "Path to input aperture image file")
+    app.add_option("-f,--aperture_file,aperture_file", aperturePath, "Path to input aperture image file")
         ->required()
         ->check(CLI::ExistingFile);
 
@@ -53,8 +54,9 @@ int main(int argc, char** argv) {
     sf::Image apertureImage;
     if (!apertureImage.loadFromFile(aperturePath)) {
         DIFFRACTION_CRITICAL("Failed to load aperture image: {}", aperturePath);
-        return EXIT_FAILURE;
     }
+
+    diffraction::Aperture aperture{std::move(apertureImage), kWindowWidth, kWindowHeight};
 
     sf::RenderWindow window{sf::VideoMode({kWindowWidth, kWindowHeight}), kAppTitle, sf::Style::Close,
                             sf::State::Windowed};
@@ -64,26 +66,37 @@ int main(int argc, char** argv) {
     std::vector<std::uint8_t> texturePixels(kWindowWidth * kWindowHeight * kPixelComponentsCount);
     std::vector<diffraction::RGBData> rgbData(kWindowWidth * kWindowHeight);
 
-    std::fill(texturePixels.begin(), texturePixels.end(),
-              255);  // Paint default texture white to enable alpha channel
+    // Paint default texture white to enable alpha channel
+    std::fill(texturePixels.begin(), texturePixels.end(), 255);
     texture.update(texturePixels.data());
 
     sf::Sprite textureSprite{texture};
 
-    diffraction::MonochromaticField resultField{kWindowWidth, kWindowHeight, kUsedWavelength};
-    // TODO perform actual simulation
-    for (auto& value : resultField) {
-        value = 1.0;
-    }
+    diffraction::MonochromaticField startField{kWindowWidth, kWindowHeight, kUsedWavelength};
+    diffraction::Transformable{startField}
+        .transform(diffraction::FillTransformer{1.0})
+        .transform(diffraction::MultiplyTransformer{aperture});
 
-    diffraction::Aperture aperture(apertureImage, resultField.getXSize(), resultField.getYSize(),
-                                   kDefaultThreshold);
+    diffraction::LightPropagationSettings lightSettings{
+        .propagationLength = 8e8,
+        .screenXNm = 6e6,
+        .screenYNm = 6e6,
+    };
+
+    diffraction::FFTPlan<diffraction::FFT2D> fftPlan{kWindowWidth, kWindowHeight};
+    diffraction::FFTPlan<diffraction::FFT2DInverse> ifftPlan{kWindowWidth, kWindowHeight};
 
     while (window.isOpen()) {
+        auto resultField{startField};
+        // TODO fix wavelength change
+
         if (!handleEvents(window, resultField)) {
             window.close();
             break;
         }
+
+        diffraction::Transformable{resultField}.transform(
+            diffraction::LightPropagationTransform{lightSettings, fftPlan, ifftPlan});
 
         getIntensityRgbData(resultField, rgbData);
         fillTextureWithRgb(rgbData, texturePixels);
