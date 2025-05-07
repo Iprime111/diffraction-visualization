@@ -253,18 +253,12 @@ class PolychromaticField final {
     PolychromaticField(std::size_t xSize, std::size_t ySize) : xSize_(xSize), ySize_(ySize) {}
     PolychromaticField(std::initializer_list<MonochromaticField> fields) {
         if (fields.size() > 0) {
-            const auto& first = *fields.begin();
-            xSize_ = first.getXSize();
-            ySize_ = first.getYSize();
+            const auto& firstField = *fields.begin();
+            xSize_ = firstField.getXSize();
+            ySize_ = firstField.getYSize();
 
             for (const auto& field : fields) {
-                if (field.getXSize() != xSize_) {
-                    DIFFRACTION_CRITICAL("X size of fields is not equal");
-                }
-
-                if (field.getYSize() != ySize_) {
-                    DIFFRACTION_CRITICAL("Y size of fields is not equal");
-                }
+                validateFieldSize(field);
             }
 
             fields_ = fields;
@@ -341,12 +335,6 @@ class PolychromaticField final {
 
         if (field.getYSize() != ySize_) {
             DIFFRACTION_CRITICAL("Y size of fields is not equal");
-        }
-    }
-
-    void validateFieldSizes() const {
-        for (const auto& field : fields_) {
-            validateFieldSize(field);
         }
     }
 };
