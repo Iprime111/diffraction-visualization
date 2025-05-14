@@ -1,4 +1,6 @@
 #include <fmt/base.h>
+#include <CLI/Validators.hpp>
+#include <exception>
 
 #include <CLI/CLI.hpp>
 #include <SFML/Graphics/Image.hpp>
@@ -11,6 +13,7 @@
 #include <SFML/Window/WindowEnums.hpp>
 #include <algorithm>
 #include <cstdint>
+#include <filesystem>
 #include <vector>
 
 #include "conversions/wavelength_lookup.hpp"
@@ -27,16 +30,21 @@ constexpr auto kPixelComponentsCount = 4;  // RGBA
 constexpr auto kWavelengthStep = 5;
 
 // TODO remove
-constexpr auto kUsedWavelength = 630.0;
+constexpr auto kDefaultWavelength = 630.0;
 constexpr auto kMinimumWavelength = 380.0;
 constexpr auto kMaximumWavelength = 779.0;
 
+constexpr auto kWavelengthTextSize = 24.f;
+constexpr auto kWavelengthTextColor = sf::Color::White;
+
 constexpr auto kAppTitle = "Diffraction";
+constexpr auto kJetBreainsFont = "/fonts/JetBrainsMonoNLNerdFont-Regular.ttf";
 
 namespace {
 void getIntensityRgbData(diffraction::MonochromaticField& field, std::vector<diffraction::RGBData>& rgbData);
 void fillTextureWithRgb(std::vector<diffraction::RGBData>& rgbData, std::vector<std::uint8_t>& texturePixels);
-bool handleEvents(sf::RenderWindow& window, diffraction::MonochromaticField& field);
+bool handleEvents(sf::RenderWindow& window, diffraction::MonochromaticField& field, sf::Text& wavelengthText);
+void updateWavelengthText(sf::Text& wavelengthText, double currentWavelength);
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -49,67 +57,84 @@ int main(int argc, char** argv) {
         ->required()
         ->check(CLI::ExistingFile);
 
+    double wavelength = kDefaultWavelength;
+    app.add_option("-w,--wavelength", wavelength, "Start wavelength")
+        ->check(CLI::Range{kMinimumWavelength, kMaximumWavelength});
+
     CLI11_PARSE(app, argc, argv);
 
-    sf::Image apertureImage;
-    if (!apertureImage.loadFromFile(aperturePath)) {
-        DIFFRACTION_CRITICAL("Failed to load aperture image: {}", aperturePath);
-    }
-
-    // TODO set relative scaling from CLI
-    diffraction::Aperture aperture{std::move(apertureImage), kWindowWidth, kWindowHeight};
-
-    sf::RenderWindow window{sf::VideoMode({kWindowWidth, kWindowHeight}), kAppTitle, sf::Style::Close,
-                            sf::State::Windowed};
-
-    sf::Texture texture{sf::Vector2u{kWindowWidth, kWindowHeight}};
-
-    std::vector<std::uint8_t> texturePixels(kWindowWidth * kWindowHeight * kPixelComponentsCount);
-    std::vector<diffraction::RGBData> rgbData(kWindowWidth * kWindowHeight);
-
-    // Paint default texture white to enable alpha channel
-    std::fill(texturePixels.begin(), texturePixels.end(), 255);
-    texture.update(texturePixels.data());
-
-    sf::Sprite textureSprite{texture};
-
-    diffraction::MonochromaticField startField{kWindowWidth, kWindowHeight, kUsedWavelength};
-    diffraction::Transformable{startField}
-        .transform(diffraction::FillTransformer{1.0})
-        .transform(diffraction::MultiplyTransformer{aperture});
-
-    // TODO change in runtime
-    diffraction::LightPropagationSettings lightSettings{
-        .propagationLength = 8e8,
-        .screenXNm = 6e6,
-        .screenYNm = 6e6,
-    };
-
-    diffraction::FFTPlan<diffraction::FFT2D> fftPlan{kWindowWidth, kWindowHeight};
-    diffraction::FFTPlan<diffraction::FFT2DInverse> ifftPlan{kWindowWidth, kWindowHeight};
-
-    while (window.isOpen()) {
-        auto resultField{startField};
-        // TODO fix wavelength change
-
-        if (!handleEvents(window, resultField)) {
-            window.close();
-            break;
+    try {
+        sf::Image apertureImage;
+        if (!apertureImage.loadFromFile(aperturePath)) {
+            DIFFRACTION_CRITICAL("Failed to load aperture image: {}", aperturePath);
         }
 
-        diffraction::Transformable{resultField}.transform(
-            diffraction::LightPropagationTransform{lightSettings, fftPlan, ifftPlan});
+        diffraction::Aperture aperture{std::move(apertureImage), kWindowWidth, kWindowHeight};
 
-        getIntensityRgbData(resultField, rgbData);
-        fillTextureWithRgb(rgbData, texturePixels);
+        sf::RenderWindow window{sf::VideoMode({kWindowWidth, kWindowHeight}), kAppTitle, sf::Style::Close,
+                                sf::State::Windowed};
+
+        sf::Texture texture{sf::Vector2u{kWindowWidth, kWindowHeight}};
+
+        std::vector<std::uint8_t> texturePixels(kWindowWidth * kWindowHeight * kPixelComponentsCount);
+        std::vector<diffraction::RGBData> rgbData(kWindowWidth * kWindowHeight);
+
+        // Paint default texture white to enable alpha channel
+        std::fill(texturePixels.begin(), texturePixels.end(), 255);
         texture.update(texturePixels.data());
 
-        // TODO draw axis with degrees
+        sf::Sprite textureSprite{texture};
 
-        window.draw(textureSprite);
-        window.display();
+        diffraction::MonochromaticField startField{kWindowWidth, kWindowHeight, wavelength};
+        diffraction::Transformable{startField}
+            .transform(diffraction::FillTransformer{1.0})
+            .transform(diffraction::MultiplyTransformer{aperture});
+
+        diffraction::LightPropagationSettings lightSettings{
+            .propagationLength = 8e8,
+            .screenXNm = 6e6,
+            .screenYNm = 6e6,
+        };
+
+        diffraction::FFTPlan<diffraction::FFT2D> fftPlan{kWindowWidth, kWindowHeight};
+        diffraction::FFTPlan<diffraction::FFT2DInverse> ifftPlan{kWindowWidth, kWindowHeight};
+
+        std::filesystem::path executablePath(argv[0]);
+        std::string executeDir = executablePath.parent_path().string();
+        std::string fontPath = executeDir + kJetBreainsFont;
+
+        sf::Font font(fontPath);
+        sf::Text wavelengthText(font);
+        wavelengthText.setCharacterSize(kWavelengthTextSize);
+        wavelengthText.setFillColor(kWavelengthTextColor);
+        wavelengthText.setPosition(sf::Vector2f(10.f, window.getSize().y - kWavelengthTextSize - 10.f));
+
+        updateWavelengthText(wavelengthText, startField.getWavelength());
+
+        while (window.isOpen()) {
+            if (!handleEvents(window, startField, wavelengthText)) {
+                window.close();
+                break;
+            }
+
+            auto resultField{startField};
+
+            diffraction::Transformable{resultField}.transform(
+                diffraction::LightPropagationTransform{lightSettings, fftPlan, ifftPlan});
+
+            getIntensityRgbData(resultField, rgbData);
+            fillTextureWithRgb(rgbData, texturePixels);
+            texture.update(texturePixels.data());
+
+            // TODO draw axis with degrees
+
+            window.draw(textureSprite);
+            window.draw(wavelengthText);
+            window.display();
+        }
+    } catch (const std::exception& ex) {
+        fmt::println("ERROR: {}", ex.what());
     }
-
     return 0;
 }
 
@@ -141,20 +166,32 @@ void fillTextureWithRgb(std::vector<diffraction::RGBData>& rgbData,
     }
 }
 
-bool handleEvents(sf::RenderWindow& window, diffraction::MonochromaticField& field) {
+void updateWavelengthText(sf::Text& wavelengthText, double currentWavelength) {
+    std::ostringstream ss;
+    ss << std::fixed << std::setprecision(2) << "Wavelength: " << currentWavelength << " nm";
+    wavelengthText.setString(ss.str());
+}
+
+bool handleEvents(sf::RenderWindow& window, diffraction::MonochromaticField& field,
+                  sf::Text& wavelengthText) {
+    bool wavelengthChanged = false;
+
     while (auto event = window.pollEvent()) {
         if (event->is<sf::Event::Closed>()) {
             return false;
-            ;
         } else if (auto keyEvent = event->getIf<sf::Event::KeyPressed>()) {
             switch (keyEvent->scancode) {
-                case sf::Keyboard::Scancode::Up:
+                case sf::Keyboard::Scancode::Equal:
                     field.setWavelength(
                         std::min(kMaximumWavelength, field.getWavelength() + kWavelengthStep));
+
+                    wavelengthChanged = true;
                     break;
-                case sf::Keyboard::Scancode::Down:
+                case sf::Keyboard::Scancode::Hyphen:
                     field.setWavelength(
                         std::max(kMinimumWavelength, field.getWavelength() - kWavelengthStep));
+
+                    wavelengthChanged = true;
                     break;
                 case sf::Keyboard::Scancode::Escape:
                     return false;
@@ -163,6 +200,10 @@ bool handleEvents(sf::RenderWindow& window, diffraction::MonochromaticField& fie
                     break;
             }
         }
+    }
+
+    if (wavelengthChanged) {
+        updateWavelengthText(wavelengthText, field.getWavelength());
     }
 
     return true;

@@ -65,15 +65,17 @@ gtest_discover_tests(diffraction-visualize-tests)
 # Set output dir
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/fonts/JetBrainsMonoNLNerdFont-Regular.ttf DESTINATION ${CMAKE_BINARY_DIR}/fonts/)
+
 # Install needed targets
 install(TARGETS diffraction-visualize
         CONFIGURATIONS Debug
         RUNTIME
-          DESTINATION Debug/bin
+        DESTINATION Debug/bin
         )
 
 install(TARGETS diffraction-visualize
         CONFIGURATIONS Release
         RUNTIME
-          DESTINATION Release/bin
+        DESTINATION Release/bin
         )
