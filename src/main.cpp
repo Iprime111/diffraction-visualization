@@ -14,8 +14,12 @@
 #include <algorithm>
 #include <cstdint>
 #include <filesystem>
+#include <iomanip>
+#include <ostream>
+#include <sstream>
 #include <vector>
 
+#include "SFML/Graphics/Text.hpp"
 #include "conversions/wavelength_lookup.hpp"
 #include "core/aperture.hpp"
 #include "core/attributes.hpp"
@@ -37,14 +41,22 @@ constexpr auto kMaximumWavelength = 779.0;
 constexpr auto kWavelengthTextSize = 24.f;
 constexpr auto kWavelengthTextColor = sf::Color::White;
 
+constexpr auto kLengthTextSize = 24.f;
+constexpr auto kLengthTextColor = sf::Color::White;
+
+constexpr auto kDefaultPropagationLength = 8e8;
+constexpr auto kLengthStep = 5e7;
+
 constexpr auto kAppTitle = "Diffraction";
 constexpr auto kJetBreainsFont = "/fonts/JetBrainsMonoNLNerdFont-Regular.ttf";
 
 namespace {
 void getIntensityRgbData(diffraction::MonochromaticField& field, std::vector<diffraction::RGBData>& rgbData);
 void fillTextureWithRgb(std::vector<diffraction::RGBData>& rgbData, std::vector<std::uint8_t>& texturePixels);
-bool handleEvents(sf::RenderWindow& window, diffraction::MonochromaticField& field, sf::Text& wavelengthText);
+bool handleEvents(sf::RenderWindow& window, diffraction::MonochromaticField& field, sf::Text& wavelengthText,
+                  diffraction::LightPropagationSettings& settings, sf::Text& lengthText);
 void updateWavelengthText(sf::Text& wavelengthText, double currentWavelength);
+void updateLengthText(sf::Text& lengthText, double length);
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -60,6 +72,9 @@ int main(int argc, char** argv) {
     double wavelength = kDefaultWavelength;
     app.add_option("-w,--wavelength", wavelength, "Start wavelength")
         ->check(CLI::Range{kMinimumWavelength, kMaximumWavelength});
+
+    double propagationLength = kDefaultPropagationLength;
+    app.add_option("-l,--length", propagationLength, "Propagation length (nm)");
 
     CLI11_PARSE(app, argc, argv);
 
@@ -91,7 +106,7 @@ int main(int argc, char** argv) {
             .transform(diffraction::MultiplyTransformer{aperture});
 
         diffraction::LightPropagationSettings lightSettings{
-            .propagationLength = 8e8,
+            .propagationLength = propagationLength,
             .screenXNm = 6e6,
             .screenYNm = 6e6,
         };
@@ -109,10 +124,16 @@ int main(int argc, char** argv) {
         wavelengthText.setFillColor(kWavelengthTextColor);
         wavelengthText.setPosition(sf::Vector2f(10.f, window.getSize().y - kWavelengthTextSize - 10.f));
 
+        sf::Text lengthText(font);
+        wavelengthText.setCharacterSize(kLengthTextSize);
+        wavelengthText.setFillColor(kLengthTextColor);
+        wavelengthText.setPosition(sf::Vector2f(10.f, window.getSize().y - kLengthTextSize - 6.f));
+
         updateWavelengthText(wavelengthText, startField.getWavelength());
+        updateLengthText(lengthText, propagationLength);
 
         while (window.isOpen()) {
-            if (!handleEvents(window, startField, wavelengthText)) {
+            if (!handleEvents(window, startField, wavelengthText, lightSettings, lengthText)) {
                 window.close();
                 break;
             }
@@ -126,10 +147,9 @@ int main(int argc, char** argv) {
             fillTextureWithRgb(rgbData, texturePixels);
             texture.update(texturePixels.data());
 
-            // TODO draw axis with degrees
-
             window.draw(textureSprite);
             window.draw(wavelengthText);
+            window.draw(lengthText);
             window.display();
         }
     } catch (const std::exception& ex) {
@@ -172,9 +192,16 @@ void updateWavelengthText(sf::Text& wavelengthText, double currentWavelength) {
     wavelengthText.setString(ss.str());
 }
 
-bool handleEvents(sf::RenderWindow& window, diffraction::MonochromaticField& field,
-                  sf::Text& wavelengthText) {
+void updateLengthText(sf::Text& lengthText, double length) {
+    std::ostringstream ss;
+    ss << std::fixed << std::setprecision(2) << "Propagation length: " << length / 1e7 << " cm";
+    lengthText.setString(ss.str());
+}
+
+bool handleEvents(sf::RenderWindow& window, diffraction::MonochromaticField& field, sf::Text& wavelengthText,
+                  diffraction::LightPropagationSettings& settings, sf::Text& lengthText) {
     bool wavelengthChanged = false;
+    bool lengthChanged = false;
 
     while (auto event = window.pollEvent()) {
         if (event->is<sf::Event::Closed>()) {
@@ -193,9 +220,16 @@ bool handleEvents(sf::RenderWindow& window, diffraction::MonochromaticField& fie
 
                     wavelengthChanged = true;
                     break;
+                case sf::Keyboard::Scancode::Left:
+                    settings.propagationLength -= kLengthStep;
+                    lengthChanged = true;
+                    break;
+                case sf::Keyboard::Scancode::Right:
+                    settings.propagationLength += kLengthStep;
+                    lengthChanged = true;
+                    break;
                 case sf::Keyboard::Scancode::Escape:
                     return false;
-                    break;
                 default:
                     break;
             }
@@ -204,6 +238,10 @@ bool handleEvents(sf::RenderWindow& window, diffraction::MonochromaticField& fie
 
     if (wavelengthChanged) {
         updateWavelengthText(wavelengthText, field.getWavelength());
+    }
+
+    if (lengthChanged) {
+        updateLengthText(lengthText, settings.propagationLength);
     }
 
     return true;
