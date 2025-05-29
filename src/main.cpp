@@ -17,6 +17,8 @@
 #include <iomanip>
 #include <ostream>
 #include <sstream>
+#include <string>
+#include <string_view>
 #include <vector>
 
 #include "SFML/Graphics/Text.hpp"
@@ -28,8 +30,8 @@
 #include "core/transform.hpp"
 #include "physics/propagation.hpp"
 
-constexpr auto kWindowWidth = 1024;
-constexpr auto kWindowHeight = 1024;
+constexpr auto kWindowWidth = 4096;
+constexpr auto kWindowHeight = 4096;
 constexpr auto kPixelComponentsCount = 4;  // RGBA
 constexpr auto kWavelengthStep = 5;
 
@@ -57,12 +59,16 @@ bool handleEvents(sf::RenderWindow& window, diffraction::MonochromaticField& fie
                   diffraction::LightPropagationSettings& settings, sf::Text& lengthText);
 void updateWavelengthText(sf::Text& wavelengthText, double currentWavelength);
 void updateLengthText(sf::Text& lengthText, double length);
+bool exportResult(double wavelength, double propagationLength, std::string_view filename, std::string_view aperturePath);
 }  // namespace
 
 int main(int argc, char** argv) {
     // TODO handle exceptions
 
     CLI::App app{kAppTitle};
+
+    std::string exportFilename;
+    app.add_option("-e, --export-file", exportFilename, "Export filename");
 
     std::string aperturePath;
     app.add_option("-f,--aperture_file,aperture_file", aperturePath, "Path to input aperture image file")
@@ -77,6 +83,11 @@ int main(int argc, char** argv) {
     app.add_option("-l,--length", propagationLength, "Propagation length (nm)");
 
     CLI11_PARSE(app, argc, argv);
+
+    if (!exportFilename.empty()) {
+        exportResult(wavelength, propagationLength, exportFilename, aperturePath);
+        return 0;
+    }
 
     try {
         sf::Image apertureImage;
@@ -107,8 +118,8 @@ int main(int argc, char** argv) {
 
         diffraction::LightPropagationSettings lightSettings{
             .propagationLength = propagationLength,
-            .screenXNm = 6e6,
-            .screenYNm = 6e6,
+            .screenXNm = 10e6,
+            .screenYNm = 10e6,
         };
 
         diffraction::FFTPlan<diffraction::FFT2D> fftPlan{kWindowWidth, kWindowHeight};
@@ -245,5 +256,59 @@ bool handleEvents(sf::RenderWindow& window, diffraction::MonochromaticField& fie
     }
 
     return true;
+}
+
+bool exportResult(double wavelength, double propagationLength, std::string_view filename, std::string_view aperturePath) {
+    sf::Image apertureImage;
+    if (!apertureImage.loadFromFile(aperturePath)) {
+        DIFFRACTION_CRITICAL("Failed to load aperture image: {}", aperturePath);
+    }
+
+    diffraction::Aperture aperture{std::move(apertureImage), kWindowWidth, kWindowHeight};
+
+    sf::RenderWindow window{sf::VideoMode({kWindowWidth, kWindowHeight}), kAppTitle, sf::Style::Close,
+                            sf::State::Windowed};
+
+    sf::Texture texture{sf::Vector2u{kWindowWidth, kWindowHeight}};
+
+    std::vector<std::uint8_t> texturePixels(kWindowWidth * kWindowHeight * kPixelComponentsCount);
+    std::vector<diffraction::RGBData> rgbData(kWindowWidth * kWindowHeight);
+
+    // Paint default texture white to enable alpha channel
+    std::fill(texturePixels.begin(), texturePixels.end(), 255);
+    texture.update(texturePixels.data());
+
+    diffraction::MonochromaticField startField{kWindowWidth, kWindowHeight, wavelength};
+    diffraction::Transformable{startField}
+        .transform(diffraction::FillTransformer{1.0})
+        .transform(diffraction::MultiplyTransformer{aperture});
+
+    diffraction::LightPropagationSettings lightSettings{
+        .propagationLength = propagationLength,
+        .screenXNm = 10e6,
+        .screenYNm = 10e6,
+    };
+
+    diffraction::FFTPlan<diffraction::FFT2D> fftPlan{kWindowWidth, kWindowHeight};
+    diffraction::FFTPlan<diffraction::FFT2DInverse> ifftPlan{kWindowWidth, kWindowHeight};
+
+    diffraction::Transformable{startField}.transform(
+        diffraction::LightPropagationTransform{lightSettings, fftPlan, ifftPlan})
+        .transform(diffraction::NormTransformer{});
+
+    auto maxIntensity = std::max_element(startField.begin(), startField.end(), [](const auto& a, const auto& b) {
+        return a.real() < b.real();
+    })->real();
+
+    auto fieldIt = startField.begin();
+    for (auto pixelIdx = 0; pixelIdx < kWindowWidth * kWindowHeight; ++pixelIdx, ++fieldIt) {
+        rgbData[pixelIdx].r = rgbData[pixelIdx].g = rgbData[pixelIdx].b = fieldIt->real() / maxIntensity;
+    }
+
+    fillTextureWithRgb(rgbData, texturePixels);
+
+    texture.update(texturePixels.data());
+
+    return texture.copyToImage().saveToFile(filename);
 }
 }  // namespace

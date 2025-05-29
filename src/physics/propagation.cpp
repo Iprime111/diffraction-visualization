@@ -26,8 +26,8 @@ void LightPropagationTransform::transform(MonochromaticField& input) const {
                 long long shiftY = (y + ySize / 2) % ySize - ySize / 2;
 
                 auto wavenumberZ = std::sqrt(std::pow(2 * kPi / wavelength, 2) -
-                                             std::pow(shiftX * kPi / settings_.screenXNm, 2) -
-                                             std::pow(shiftY * kPi / settings_.screenYNm, 2));
+                                             std::pow(shiftX * kPi * 2 / settings_.screenXNm, 2) -
+                                             std::pow(shiftY * kPi * 2 / settings_.screenYNm, 2));
                 value *= std::exp(kIm * settings_.propagationLength * wavenumberZ);
             }})
         .transform(FFT2DInverse{fftInversePlan_.get()});
